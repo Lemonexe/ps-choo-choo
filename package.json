@@ -1,0 +1,10 @@
+{
+  "name": "iron-horse-rider",
+  "version": "1.0.0",
+  "description": "Steam locomotive simulator with a thermodynamic engine.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
