@@ -1,10 +1,17 @@
 {
-  "name": "iron-horse-rider",
+  "name": "ps-choo-choo",
   "version": "1.0.0",
   "description": "Steam locomotive simulator with a thermodynamic engine.",
   "type": "module",
-  "main": "index.js",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "watch": "tsc --watch",
+    "start": "node scripts/serve.mjs",
+    "dev": "node scripts/dev.mjs",
+    "test": "npm run build && node --test tests/*.test.mjs",
+    "test:convergence": "npm run build && node scripts/convergence.mjs",
+    "test:browser": "npm run build && node scripts/browser-test.mjs"
   }
 }
