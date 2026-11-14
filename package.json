@@ -4,14 +4,22 @@
   "description": "Steam locomotive simulator with a thermodynamic engine.",
   "type": "module",
   "private": true,
+  "engines": { "node": ">=24" },
   "scripts": {
     "build": "tsc",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.physics.json",
     "watch": "tsc --watch",
     "start": "node scripts/serve.mjs",
     "dev": "node scripts/dev.mjs",
-    "test": "npm run build && node --test tests/*.test.mjs",
+    "test": "npm run typecheck && npm run build && node --test --test-isolation=none tests/*.test.mjs",
     "test:convergence": "npm run build && node scripts/convergence.mjs",
     "test:browser": "npm run build && node scripts/browser-test.mjs"
+  },
+  "dependencies": {
+    "iapws-if97": "2.8.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1",
+    "typescript": "7.0.2"
   }
 }

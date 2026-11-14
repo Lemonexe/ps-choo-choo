@@ -23,7 +23,9 @@ Two-phase vapor takeoff; homogeneous takeoff in single phase. No boiler air or i
 Water level is undefined in supercritical fluid. Saturation ends at 22.064 MPa.
 
 Direct IF97 saturation/backward equations wherever possible; bracketed scalar
-inversions elsewhere. Tables/interpolation only after profiling and error checks.
+inversions elsewhere. Approved Illinois interpolation with bisection fallback
+accelerates nested solves; backward properties use safeguarded Newton refinement.
+Tables/interpolation only after profiling and error checks.
 Failed solves, unsupported states and nonfinite results reject the step, retain the
 last valid state, pause, and display a modal. Ordinary alerts do not stop the model.
 Absolute SI internally; gauge bar in controls/displays, kelvin internally, Celsius
@@ -58,8 +60,9 @@ in displays. Every mass stream carries enthalpy; heat/work are separate transfer
   requests flow; available pressure/steam/tender water bound it. No wheel drive.
 - Condenser: optional ideal unlimited atmospheric cooling to saturated liquid,
   no subcooling. Account rejected heat and return hot water to thermal tender tank.
-- Relief: ideal adiabatic well-mixed vessel blowdown to set pressure, accounting
-  mass and discharge enthalpy; no valve capacity dynamics. Manual vent has finite flow.
+- Relief: phase-aware adiabatic blowdown to set pressure, accounting mass and
+  discharge enthalpy; vapor takeoff when liquid remains, homogeneous discharge
+  in single-phase states; no valve capacity dynamics. Manual vent has finite flow.
 - Motion: Davis A+B|v|+Cv², grade gravity, adhesion-limited train brakes. No wheel
   rotation state. Solve slip wheel-equivalent speed where engine force meets
   adhesion; loss is adhesion force times slip speed. Sand raises adhesion.
