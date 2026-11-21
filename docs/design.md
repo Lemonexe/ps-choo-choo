@@ -84,7 +84,7 @@ boiler may subsequently develop subatmospheric pressure. Steam discharge never
 implicitly admits outside air.
 
 Management (paused, repeatable external additions): fill tender, fill bunker,
-prime boiler, preheat firebox/establish coal bed, preheat boiler to nominal pressure.
+prime boiler, preheat firebox/establish coal bed, raise boiler pressure by 5 bar per click.
 Never cool components through preheat. Account externally added mass/energy.
 Specs editable only paused; carriage count additionally requires standstill.
 Live controls: throttle, signed cutoff/direction, stoker/manual coal, water pump,

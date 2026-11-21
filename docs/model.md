@@ -176,6 +176,12 @@ separately rather than hidden by a correction. Timestep convergence bounds this.
 
 ## Parameter provenance
 
+Management **Raise steam** adds 5 bar (500 kPa) to the current equilibrium
+pressure per click, holding boiler mass and volume fixed. Recompute water energy
+as `m u(p+500 kPa,V/m)` and preheat metal to at least the new water temperature.
+This is an external heat addition; it does not change the relief setting, which
+still applies on resuming. An increment outside the IF97 domain is rejected.
+
 Documented 01 118 dimensions: 16 bar gauge, two 600×660 mm cylinders, 2 m drivers,
 4.32 m² grate, 247.15 m² evaporative surface, 86.5 m² superheater, 111.3 t working
 locomotive, 170.6 t full locomotive+tender, 34 m³ tender water, 10 t coal.

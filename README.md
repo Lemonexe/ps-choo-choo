@@ -37,7 +37,9 @@ for the schematic and controls; train statistics appear directly below the circu
 above the steam, coal and feedwater readouts. Opposite-direction running gear is
 silently blocked while moving; neutral remains available.
 
-1. In **Management**, preheat the firebox and boiler while paused.
+1. In **Management**, preheat the firebox, then click **Raise steam +5 bar** as
+   needed while paused. Each click adds 5 bar; the relief setting still applies
+   when running.
 2. In **Driving cab**, release the brake and open the throttle gradually.
 3. Use running gear for direction and admission cutoff. Sand improves adhesion.
 4. Add 20 kg coal charges, or enable the stoker in **Specifications**.

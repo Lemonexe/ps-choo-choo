@@ -6,6 +6,7 @@ import { finite, SimulationError } from "./math.js";
 import { move, trainMass } from "./motion.js";
 import {
   ATM,
+  MAX_P,
   boilingPoint,
   flash,
   ph,
@@ -426,14 +427,15 @@ export function manage(
     }
     case "boiler": {
       const water = boilerWater(s);
-      if (water.p < DESIGN.nominalPressure) {
-        const a = atPressureVolume(DESIGN.nominalPressure, DESIGN.boilerVolume / s.boiler.mass);
-        next.boiler.energy = Math.max(s.boiler.energy, s.boiler.mass * a.u);
-        next.boiler.metalEnergy = Math.max(
-          s.boiler.metalEnergy,
-          thermalEnergy(a.T, DESIGN.boilerMetalCapacity),
-        );
-      }
+      const targetPressure = water.p + 5e5;
+      if (targetPressure > MAX_P)
+        throw new SimulationError("Adding 5 bar would exceed the IF97 limit of 100 MPa.");
+      const a = atPressureVolume(targetPressure, DESIGN.boilerVolume / s.boiler.mass);
+      next.boiler.energy = s.boiler.mass * a.u;
+      next.boiler.metalEnergy = Math.max(
+        s.boiler.metalEnergy,
+        thermalEnergy(a.T, DESIGN.boilerMetalCapacity),
+      );
       break;
     }
   }

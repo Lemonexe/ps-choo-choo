@@ -6,7 +6,7 @@ are pinned in `package-lock.json`.
 
 ## Automated checks
 
-- **41 passing tests** through `npm test`, including the DOM-free physics build.
+- **43 passing tests** through `npm test`, including the DOM-free physics build.
 - Published IF97 forward cases for Regions 1, 2, 3 and 5; direct saturation cases
   for Region 4. Forward reference comparisons allow 2×10⁻⁷ relative discrepancy
   against rounded published values.

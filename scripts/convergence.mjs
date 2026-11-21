@@ -3,6 +3,7 @@ import { initialState, manage, step, inspect } from "../dist/physics/simulation.
 import { thermalEnergy } from "../dist/physics/heat.js";
 import { DESIGN } from "../dist/physics/types.js";
 import { pt } from "../dist/physics/thermo.js";
+import { atPressureVolume } from "../dist/physics/boiler.js";
 
 const seconds = Number(process.env.CONVERGENCE_SECONDS || 10);
 const scenarios = {
@@ -36,7 +37,11 @@ const records = [];
 for (const [name, configure] of Object.entries(scenarios)) {
   const runs = [];
   for (const dt of [0.02, 0.01, 0.005]) {
-    let s = manage(manage(initialState(), "fire").state, "boiler").state;
+    let s = manage(initialState(), "fire").state;
+    // Nominal reference pressure, independent of the UI's 5-bar increments.
+    const boiler = atPressureVolume(DESIGN.nominalPressure, DESIGN.boilerVolume / s.boiler.mass);
+    s.boiler.energy = s.boiler.mass * boiler.u;
+    s.boiler.metalEnergy = thermalEnergy(boiler.T, DESIGN.boilerMetalCapacity);
     s.superheaterEnergy = thermalEnergy(650, DESIGN.superheaterCapacity);
     configure(s);
     let maxMass = 0,

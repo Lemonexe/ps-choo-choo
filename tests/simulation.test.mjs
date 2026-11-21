@@ -11,12 +11,17 @@ import {
 } from "../dist/physics/simulation.js";
 import { DESIGN } from "../dist/physics/types.js";
 import { ATM, pt } from "../dist/physics/thermo.js";
-import { filledBoiler } from "../dist/physics/boiler.js";
+import { atPressureVolume, filledBoiler } from "../dist/physics/boiler.js";
 import { thermalEnergy } from "../dist/physics/heat.js";
 import { decode, encode } from "../dist/persistence.js";
 
 function hot() {
-  return manage(manage(initialState(), "fire").state, "boiler").state;
+  // Keep the physical reference fixture independent of management click size.
+  const s = manage(initialState(), "fire").state;
+  const water = atPressureVolume(DESIGN.nominalPressure, DESIGN.boilerVolume / s.boiler.mass);
+  s.boiler.energy = s.boiler.mass * water.u;
+  s.boiler.metalEnergy = thermalEnergy(water.T, DESIGN.boilerMetalCapacity);
+  return s;
 }
 function balances(r) {
   assert.ok(
@@ -175,13 +180,53 @@ test("management actions expose external balances, preserve hot water, and never
     s = r.state;
   }
   const first = manage(s, "boiler");
-  assert.equal(first.energy, 0);
+  assert.ok(first.energy > 0);
   const b = s.bunker,
     coal = s.fire.coal,
     charged = addCoal(s);
   assert.equal(charged.bunker, b - 20);
   assert.equal(charged.fire.coal, coal + 20);
   assert.equal(storedMass(s), storedMass(charged));
+});
+test("Raise steam adds 5 bar per click at fixed mass, including above nominal pressure", () => {
+  let s = initialState();
+  const mass = s.boiler.mass;
+  for (let clicks = 1; clicks <= 5; clicks++) {
+    const before = JSON.stringify(s),
+      previousEnergy = s.boiler.energy;
+    const result = manage(s, "boiler");
+    assert.equal(JSON.stringify(s), before);
+    s = result.state;
+    assert.ok(Math.abs(inspect(s).boiler.p - ATM - clicks * 5e5) < 20);
+    assert.equal(s.boiler.mass, mass);
+    assert.equal(result.mass, 0);
+    assert.ok(s.boiler.energy > previousEnergy && result.energy > 0);
+    assert.equal(s.time, 0);
+    assert.equal(s.specs.reliefPressure, DESIGN.nominalPressure);
+  }
+  assert.ok(inspect(s).boiler.p > DESIGN.nominalPressure);
+  const supercritical = pt(30e6, 700);
+  s.boiler = {
+    mass: DESIGN.boilerVolume / supercritical.v,
+    energy: (DESIGN.boilerVolume / supercritical.v) * supercritical.u,
+    metalEnergy: thermalEnergy(700, DESIGN.boilerMetalCapacity),
+  };
+  const raised = manage(s, "boiler");
+  assert.ok(Math.abs(inspect(raised.state).boiler.p - 30.5e6) < 100);
+  assert.equal(raised.state.boiler.mass, s.boiler.mass);
+});
+test("Raise steam rejects an increment beyond IF97 pressure limits without changing the state", () => {
+  const s = initialState(),
+    water = pt(99.8e6, 650);
+  const mass = DESIGN.boilerVolume / water.v;
+  s.boiler = {
+    mass,
+    energy: mass * water.u,
+    metalEnergy: thermalEnergy(650, DESIGN.boilerMetalCapacity),
+  };
+  const before = JSON.stringify(s);
+  assert.throws(() => manage(s, "boiler"), /100 MPa/);
+  assert.equal(JSON.stringify(s), before);
 });
 test("snapshots are versioned, reject corrupt states, and release held valves on restore", () => {
   const s = hot();
