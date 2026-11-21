@@ -85,7 +85,7 @@ try {
   await page.locator("#automaticStoker").check();
   await page.locator("#freight").fill("4");
   await page.locator("#freight").dispatchEvent("change");
-  await page.getByRole("tab", { name: "Driving cab", exact: true }).click();
+  await page.getByRole("tab", { name: "DRIVING CAB", exact: true }).click();
   assert.equal(await page.locator("#automatic-firing").isVisible(), true);
   const slider = async (id, value) =>
     page.locator(`#${id}`).evaluate((el, v) => {
@@ -109,7 +109,7 @@ try {
   assert.equal(await page.locator("#condenser").isDisabled(), true);
   await page.getByRole("tab", { name: "Management", exact: true }).click();
   assert.equal(await page.locator("[data-manage=fire]").isDisabled(), true);
-  await page.getByRole("tab", { name: "Driving cab", exact: true }).click();
+  await page.getByRole("tab", { name: "DRIVING CAB", exact: true }).click();
   await page.locator("#run").click();
   assert.equal(
     await page.locator("#run").evaluate((el) => getComputedStyle(el).backgroundColor),
@@ -122,7 +122,7 @@ try {
   assert.equal(saved.state.specs.condenser, true);
   await page.screenshot({ path: "/tmp/ps-choo-choo-desktop.png", fullPage: true });
   await page.reload();
-  await page.getByRole("tab", { name: "Driving cab", exact: true }).click();
+  await page.getByRole("tab", { name: "DRIVING CAB", exact: true }).click();
   assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "false");
   assert.equal(await page.locator("#throttle").inputValue(), "25");
   assert.equal(await page.locator("#automatic-firing").isVisible(), true);
@@ -174,7 +174,7 @@ try {
   assert.equal(await page.locator('[data-speed][aria-pressed="true"]').count(), 0);
   await page.locator("#reset").click();
   await page.locator("#reset-confirm").click();
-  await page.getByRole("tab", { name: "Driving cab", exact: true }).click();
+  await page.getByRole("tab", { name: "DRIVING CAB", exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator("#toast").evaluate((el) => {
     el.hidden = true;
@@ -289,7 +289,7 @@ try {
       encode(moving),
     );
     await reverserPage.goto(base);
-    await reverserPage.getByRole("tab", { name: "Driving cab", exact: true }).click();
+    await reverserPage.getByRole("tab", { name: "DRIVING CAB", exact: true }).click();
     const changeGear = (value) =>
       reverserPage.locator("#reverser").evaluate((input, value) => {
         input.value = String(value);
@@ -334,7 +334,7 @@ try {
     JSON.stringify({ version: 1, state: legacy }),
   );
   await recovery.goto(base);
-  await recovery.getByRole("tab", { name: "Driving cab", exact: true }).click();
+  await recovery.getByRole("tab", { name: "DRIVING CAB", exact: true }).click();
   assert.equal(await recovery.locator("#error-modal").evaluate((el) => el.open), false);
   assert.equal(await recovery.locator("#phase-label").textContent(), "Liquid-filled boiler");
   await recovery.locator("#run").click();

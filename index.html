@@ -68,7 +68,7 @@
           Getting started
         </button>
         <button role="tab" id="tab-cab" aria-controls="panel-cab" aria-selected="false">
-          Driving cab
+          DRIVING CAB
         </button>
         <button
           role="tab"
@@ -100,6 +100,19 @@
             <span>01 118</span>
             <small>PACIFIC · 2 CYLINDERS · 16 BAR</small>
           </div>
+        </div>
+        <div class="section-intro">
+          <h2>Your first journey</h2>
+          <p>
+            Start in <strong>Management</strong> while paused. Refill water and coal if needed, then
+            preheat the firebox and boiler to light the fire and raise steam.
+          </p>
+          <p>
+            <strong>Driving cab</strong> is the main interface, with the live steam circuit and
+            driving controls. Press play, release the brake, and open the throttle gradually. Keep
+            the fire supplied with coal and use the feedwater pump to maintain the boiler water
+            level.
+          </p>
         </div>
       </section>
       <section id="panel-cab" role="tabpanel" aria-labelledby="tab-cab" hidden>
@@ -390,10 +403,7 @@
         <div class="section-intro">
           <p class="eyebrow">YOUR SIMULATION</p>
           <h2>Keep a snapshot.</h2>
-          <p>
-            Save your locomotive to a JSON file, or load one. Missing fields use the starting
-            defaults. Loaded snapshots stay paused.
-          </p>
+          <p>Save your locomotive to a JSON file, or load one.</p>
           <div class="snapshot-actions">
             <button id="save-snapshot" class="button">Save snapshot</button>
             <button id="load-snapshot" class="button">Load snapshot</button>
