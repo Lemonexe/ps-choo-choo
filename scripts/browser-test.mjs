@@ -33,7 +33,7 @@ try {
   await page.goto(base);
   await page.locator("#phase-label").waitFor();
   assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "true");
-  assert.equal(await page.locator("#clock").textContent(), "00:00.00");
+  assert.equal(await page.locator("#clock").textContent(), "🕒 00:00");
   assert.equal(await page.locator("#run").getAttribute("aria-label"), "Resume simulation");
   assert.equal(await page.locator("#run span").textContent(), "▶");
   assert.equal(await page.locator("#run-state").count(), 0);
@@ -57,7 +57,7 @@ try {
   await slider("brake", 0);
   await slider("stoker", 40);
   await page.locator("#run").click();
-  await page.waitForFunction(() => document.getElementById("clock").textContent !== "00:00.00");
+  await page.waitForFunction(() => document.getElementById("clock").textContent !== "🕒 00:00");
   assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "false");
   assert.equal(await page.locator("#run").getAttribute("aria-label"), "Pause simulation");
   assert.equal(await page.locator("#run span").textContent(), "Ⅱ");
@@ -108,7 +108,7 @@ try {
   assert.equal(await page.locator('[data-speed="4"]').getAttribute("aria-pressed"), "true");
   await page.locator("#reset").click();
   await page.locator("#reset-confirm").click();
-  assert.equal(await page.locator("#clock").textContent(), "00:00.00");
+  assert.equal(await page.locator("#clock").textContent(), "🕒 00:00");
   assert.equal(await page.locator("#throttle").inputValue(), "0");
   assert.equal(await page.locator('[data-speed][aria-pressed="true"]').count(), 0);
   await page.getByRole("tab", { name: "Driving cab", exact: true }).click();
@@ -135,11 +135,10 @@ try {
   });
   await page.reload();
   await page.locator('[data-speed="8"]').click();
-  await page.locator("#run").click();
   await page.locator("#error-modal").waitFor();
   assert.equal(await page.locator("#error-modal").evaluate((el) => el.open), true);
   assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "true");
-  assert.equal(await page.locator("#clock").textContent(), "00:00.00");
+  assert.equal(await page.locator("#clock").textContent(), "🕒 00:00");
   assert.equal(
     await page.evaluate(
       () => JSON.parse(localStorage.getItem("ps-choo-choo.snapshot")).state.boiler.energy,
@@ -168,34 +167,47 @@ try {
   });
   await playback.goto(base);
   await playback.waitForFunction(() => typeof window.testSimulationTick === "function");
-  const tick = async (expected) => {
-    await playback.evaluate(() => window.testSimulationTick());
+  const tick = async (count, expected) => {
+    await playback.evaluate((count) => {
+      for (let i = 0; i < count; i++) window.testSimulationTick();
+    }, count);
     await playback.waitForFunction(
       (text) => document.getElementById("clock").textContent === text,
       expected,
     );
   };
+  assert.equal(await playback.locator("#single-step").count(), 0);
+  await playback.locator("#run").click();
+  await tick(50, "🕒 00:01"); // 50 scheduling callbacks at 1× = one simulated second.
+  await playback.locator("#run").click();
+  await tick(50, "🕒 00:01");
   await playback.locator('[data-speed="2"]').click();
   assert.equal(await playback.locator('[data-speed="2"]').getAttribute("aria-pressed"), "true");
-  await tick("00:00.00"); // Selecting a speed does not resume a paused locomotive.
-  await playback.locator("#run").click();
-  await tick("00:00.04");
+  assert.equal(await playback.locator("#run").getAttribute("aria-pressed"), "false");
+  await tick(25, "🕒 00:02"); // Turning on speed-up resumes a paused locomotive.
   await playback.locator('[data-speed="4"]').click();
   assert.equal(await playback.locator('[data-speed][aria-pressed="true"]').count(), 1);
   assert.equal(await playback.locator('[data-speed="2"]').getAttribute("aria-pressed"), "false");
-  await tick("00:00.12");
+  await tick(25, "🕒 00:04");
   await playback.locator('[data-speed="8"]').click();
-  await tick("00:00.28");
+  await tick(50, "🕒 00:12"); // The same 50 callbacks advance eight simulated seconds at 8×.
   await playback.locator('[data-speed="8"]').click();
   assert.equal(await playback.locator('[data-speed][aria-pressed="true"]').count(), 0);
-  await tick("00:00.30"); // Clicking the active button restores 1×.
+  assert.equal(await playback.locator("#run").getAttribute("aria-pressed"), "false");
+  await tick(50, "🕒 00:13"); // Disabling speed-up keeps a running simulation running.
   await playback.locator('[data-speed="4"]').click();
   await playback.locator("#run").click();
-  await tick("00:00.30");
-  await playback.locator("#single-step").click();
-  await playback.waitForFunction(() => document.getElementById("clock").textContent === "00:00.32");
+  await tick(50, "🕒 00:13");
+  await playback.locator('[data-speed="4"]').click();
+  assert.equal(await playback.locator('[data-speed][aria-pressed="true"]').count(), 0);
+  assert.equal(await playback.locator("#run").getAttribute("aria-pressed"), "true");
+  await tick(50, "🕒 00:13"); // Disabling speed-up does not unpause.
+  await playback.locator('[data-speed="8"]').click();
+  await tick(25, "🕒 00:17");
   await playback.locator("#run").click();
-  await tick("00:00.40"); // Pause/resume preserves the selected speed.
+  await tick(50, "🕒 00:17");
+  await playback.locator("#run").click();
+  await tick(25, "🕒 00:21"); // Pause/resume preserves the selected speed.
   await playback.locator("#run").click();
   await playback.reload();
   assert.equal(await playback.locator("#run").getAttribute("aria-pressed"), "true");

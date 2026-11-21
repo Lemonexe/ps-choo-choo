@@ -24,7 +24,7 @@
         <span>choo choo<small>A STEAM LOCOMOTIVE LABORATORY</small> </span>
       </a>
       <div class="session">
-        <span id="clock">00:00.00</span>
+        <span id="clock" role="timer" aria-label="Elapsed simulation time">🕒 00:00</span>
         <div class="transport-controls" role="group" aria-label="Simulation playback">
           <button
             id="run"
@@ -60,7 +60,6 @@
             ×8
           </button>
         </div>
-        <button id="single-step" class="button compact" title="Advance one 20 ms step">Step</button>
       </div>
     </header>
     <main>

@@ -57,7 +57,6 @@ function setRunning(value: boolean): void {
   button.title = label;
   button.setAttribute("aria-pressed", String(!running));
   button.innerHTML = `<span aria-hidden="true">${running ? "Ⅱ" : "▶"}</span>`;
-  element<HTMLButtonElement>("single-step").disabled = running;
   sync();
   dirty = true;
   if (!running) save();
@@ -122,10 +121,10 @@ function sync(): void {
 function render(): void {
   if (!dirty) return;
   dirty = false;
-  const seconds = state.time;
+  const seconds = Math.floor(state.time + 1e-9);
   setText(
     "clock",
-    `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${(seconds % 60).toFixed(2).padStart(5, "0")}`,
+    `🕒 ${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`,
   );
   element("stat-speed").innerHTML =
     `${(Math.abs(state.speed) * 3.6).toFixed(1)} <small>km/h</small>`;
@@ -357,18 +356,13 @@ function setPlaybackSpeed(speed: number): void {
 }
 for (const button of speedButtons) {
   button.addEventListener("click", () => {
+    if (element<HTMLDialogElement>("error-modal").open) return;
     const speed = Number(button.dataset.speed);
-    setPlaybackSpeed(playbackSpeed === speed ? 1 : speed);
+    const enabling = playbackSpeed !== speed;
+    setPlaybackSpeed(enabling ? speed : 1);
+    if (enabling) setRunning(true);
   });
 }
-element("single-step").addEventListener("click", () => {
-  if (!running) {
-    advance();
-    sync();
-    save();
-    render();
-  }
-});
 element("error-close").addEventListener("click", () =>
   element<HTMLDialogElement>("error-modal").close(),
 );

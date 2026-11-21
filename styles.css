@@ -140,11 +140,6 @@ a {
 .button.primary:hover {
   background: #e4ca98;
 }
-.button.compact {
-  padding: 9px 11px;
-  color: #d5ddd2;
-  border-color: #49605a;
-}
 .button.transport {
   min-width: 42px;
   padding: 9px;

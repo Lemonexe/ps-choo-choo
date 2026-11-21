@@ -70,7 +70,9 @@ finished without a solver failure. It took about 25 seconds wall time on this ho
 - All native ESM modules load without a bundler or runtime CDN requests.
 - Preheat, supplies, manual/automatic firing selection, throttle and brake.
 - Play/pause icons and pressed states; ×2/×4/×8 step counts, mutually exclusive
-  speed selection, active-speed toggle back to 1×, and single-step while paused.
+  speed selection that resumes the simulation, and active-speed toggle back to
+  1× that preserves pause/run state. Whole-second elapsed simulation time advances
+  8× as fast at 8× playback for the same number of timer callbacks.
 - Held manual vent and pointer release.
 - Paused-only specification/management controls.
 - Saved controls/specifications and paused reload.
