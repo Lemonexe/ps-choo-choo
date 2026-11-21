@@ -62,6 +62,12 @@ version-1 saves migrate automatically, preserving their boiler and supplies.
 All specifications require pause; changing carriage counts also requires near
 standstill. Reset asks before replacing the saved locomotive.
 
+In **Settings**, **Save snapshot** downloads a JSON file containing the simulation
+state. **Load snapshot** restores that file into a paused locomotive at 1× speed,
+backfilling omitted state fields from the starting defaults. Present values,
+including zero and false, are preserved. Invalid files leave the current state
+intact. Held valves always load closed.
+
 The warm starting boiler contains only equilibrium water/steam at atmospheric
 pressure, no air. Preheat/replenishment actions explicitly report external mass
 and energy changes. They are repeatable sandbox conveniences.

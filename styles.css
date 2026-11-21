@@ -721,6 +721,11 @@ dialog .button {
   gap: 12px;
   flex-wrap: wrap;
 }
+.snapshot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
 .toast {
   position: fixed;
   bottom: 25px;

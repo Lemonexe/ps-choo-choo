@@ -1,6 +1,7 @@
 import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 import { once } from "node:events";
+import { readFile } from "node:fs/promises";
 import { serve } from "./serve.mjs";
 import { initialState } from "../dist/physics/simulation.js";
 import { pt } from "../dist/physics/thermo.js";
@@ -144,6 +145,13 @@ try {
     /DRG_Class_01/,
   );
   await page.getByRole("tab", { name: "Settings", exact: true }).click();
+  await page.screenshot({ path: "/tmp/ps-choo-choo-settings.png", fullPage: true });
+  const downloading = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Save snapshot", exact: true }).click();
+  const download = await downloading;
+  assert.equal(download.suggestedFilename(), "ps-choo-choo-snapshot.json");
+  const snapshotPath = await download.path();
+  const exported = JSON.parse(await readFile(snapshotPath, "utf8"));
   await page.locator('[data-speed="4"]').click();
   await page.locator("#reset").click();
   await page.locator("#reset-cancel").click();
@@ -154,6 +162,18 @@ try {
   assert.equal(await page.locator("#clock").textContent(), "🕒 00:00");
   assert.equal(await page.locator("#throttle").inputValue(), "0");
   assert.equal(await page.locator('[data-speed][aria-pressed="true"]').count(), 0);
+  const choosing = page.waitForEvent("filechooser");
+  await page.getByRole("button", { name: "Load snapshot", exact: true }).click();
+  await (await choosing).setFiles(snapshotPath);
+  await page.locator("#toast").filter({ hasText: "Snapshot loaded" }).waitFor();
+  assert.deepEqual(
+    await page.evaluate(() => JSON.parse(localStorage.getItem("ps-choo-choo.snapshot")).state),
+    exported.state,
+  );
+  assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "false");
+  assert.equal(await page.locator('[data-speed][aria-pressed="true"]').count(), 0);
+  await page.locator("#reset").click();
+  await page.locator("#reset-confirm").click();
   await page.getByRole("tab", { name: "Driving cab", exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator("#toast").evaluate((el) => {

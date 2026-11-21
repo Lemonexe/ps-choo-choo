@@ -388,6 +388,19 @@
       </section>
       <section id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" hidden>
         <div class="section-intro">
+          <p class="eyebrow">YOUR SIMULATION</p>
+          <h2>Keep a snapshot.</h2>
+          <p>
+            Save your locomotive to a JSON file, or load one. Missing fields use the starting
+            defaults. Loaded snapshots stay paused.
+          </p>
+          <div class="snapshot-actions">
+            <button id="save-snapshot" class="button">Save snapshot</button>
+            <button id="load-snapshot" class="button">Load snapshot</button>
+            <input id="snapshot-file" type="file" accept=".json,application/json" hidden />
+          </div>
+        </div>
+        <div class="section-intro">
           <p class="eyebrow">A CLEAN SLATE</p>
           <h2>Back to the beginning.</h2>
           <p>

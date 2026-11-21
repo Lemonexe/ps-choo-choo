@@ -6,7 +6,7 @@ are pinned in `package-lock.json`.
 
 ## Automated checks
 
-- **39 passing tests** through `npm test`, including the DOM-free physics build.
+- **41 passing tests** through `npm test`, including the DOM-free physics build.
 - Published IF97 forward cases for Regions 1, 2, 3 and 5; direct saturation cases
   for Region 4. Forward reference comparisons allow 2×10⁻⁷ relative discrepancy
   against rounded published values.
@@ -26,6 +26,8 @@ are pinned in `package-lock.json`.
   return valid flow, work and conservation diagnostics.
 - Snapshot shape/version/domain validation, empty/vapor-filled tender rejection,
   capacity/control limits, nonfinite and unsupported fluid states.
+- JSON file export/import round trip into clean state, and deep backfill of
+  missing nested fields while preserving explicit zero/false values.
 
 ## Fixed-step convergence
 
@@ -86,6 +88,7 @@ finished without a solver failure. It took about 25 seconds wall time on this ho
 - Hidden-document automatic pause.
 - About-tab Wikipedia and 01 118-specific Wikimedia links.
 - Reset cancel/confirm behavior.
+- Settings snapshot download and file-picker load restore the exported state paused.
 - Desktop and 390 px mobile layouts with no document horizontal overflow;
   the diagram scrolls within its own viewport to preserve legible labels.
 - A supported high-pressure state whose next heat input exceeds IF97 limits

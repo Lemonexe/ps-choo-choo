@@ -1,5 +1,5 @@
 import { draw } from "./canvas.js";
-import { decode, encode, STORAGE_KEY } from "./persistence.js";
+import { decode, encode, loadSnapshot, STORAGE_KEY } from "./persistence.js";
 import { cutoffPercent } from "./physics/cylinder.js";
 import {
   addCoal,
@@ -371,6 +371,50 @@ for (const button of speedButtons) {
 element("error-close").addEventListener("click", () =>
   element<HTMLDialogElement>("error-modal").close(),
 );
+element("save-snapshot").addEventListener("click", () => {
+  const url = URL.createObjectURL(new Blob([encode(state, true)], { type: "application/json" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "ps-choo-choo-snapshot.json";
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+const snapshotFile = element<HTMLInputElement>("snapshot-file");
+const loadButton = element<HTMLButtonElement>("load-snapshot");
+loadButton.addEventListener("click", () => {
+  setRunning(false);
+  snapshotFile.value = "";
+  snapshotFile.click();
+});
+snapshotFile.addEventListener("change", async () => {
+  const file = snapshotFile.files?.[0];
+  if (!file) return;
+  setRunning(false);
+  loadButton.disabled = true;
+  snapshotFile.disabled = true;
+  try {
+    const loaded = loadSnapshot(await file.text());
+    const loadedDiagnostics = inspect(loaded);
+    state = loaded;
+    diagnostics = loadedDiagnostics;
+    setPlaybackSpeed(1);
+    setRunning(false);
+    render();
+    toast("Snapshot loaded. The simulation is paused.");
+  } catch (error) {
+    report(
+      new Error(
+        `Could not load snapshot: ${error instanceof Error ? error.message : String(error)}`,
+      ),
+    );
+  } finally {
+    snapshotFile.value = "";
+    snapshotFile.disabled = false;
+    loadButton.disabled = false;
+  }
+});
 element("reset").addEventListener("click", () => {
   setRunning(false);
   element<HTMLDialogElement>("reset-modal").showModal();
