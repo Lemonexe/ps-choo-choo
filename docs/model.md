@@ -175,19 +175,19 @@ for other bituminous coal; see the sources in `design.md`.
 
 Explicit estimates, **not measured historical specifications**:
 
-| Parameter | Value |
-| --- | --- |
-| Boiler volume / normal liquid volume fraction / tube threshold | 16 m³ / 65% / 28% |
-| Fire / boiler metal / superheater effective heat capacities | 3 / 15 / 1.2 MJ/K |
-| Radiation area / effective emissivity | 20 m² / 0.75 |
-| Adhesive mass / clearance fraction | 60 t / 6% of swept volume |
-| Dry base mass, excluding retained water and coal | 116.6 t |
-| Passenger / loaded freight carriage masses | 45 / 80 t |
-| Maximum burn / feed / stoker | 1.2 / 12 / 2 kg/s |
-| Main / manual vent effective areas; discharge coefficient | 0.003 / 0.0003 m²; 0.78 |
-| Primary gas flow area / hydraulic diameter | 1.1 m² / 0.05 m |
-| Superheater gas flow area / hydraulic diameter | 0.55 m² / 0.08 m |
-| Ambient temperature | 293.15 K |
+| Parameter                                                      | Value                     |
+| -------------------------------------------------------------- | ------------------------- |
+| Boiler volume / normal liquid volume fraction / tube threshold | 16 m³ / 65% / 28%         |
+| Fire / boiler metal / superheater effective heat capacities    | 3 / 15 / 1.2 MJ/K         |
+| Radiation area / effective emissivity                          | 20 m² / 0.75              |
+| Adhesive mass / clearance fraction                             | 60 t / 6% of swept volume |
+| Dry base mass, excluding retained water and coal               | 116.6 t                   |
+| Passenger / loaded freight carriage masses                     | 45 / 80 t                 |
+| Maximum burn / feed / stoker                                   | 1.2 / 12 / 2 kg/s         |
+| Main / manual vent effective areas; discharge coefficient      | 0.003 / 0.0003 m²; 0.78   |
+| Primary gas flow area / hydraulic diameter                     | 1.1 m² / 0.05 m           |
+| Superheater gas flow area / hydraulic diameter                 | 0.55 m² / 0.08 m          |
+| Ambient temperature                                            | 293.15 K                  |
 
 Equations, source references and empirical coefficients are exposed in small pure
 modules so alternatives can be tested without replacing the GUI.

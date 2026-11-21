@@ -1,20 +1,9 @@
 {
   "name": "ps-choo-choo",
   "version": "1.0.0",
+  "private": true,
   "description": "Steam locomotive simulator with a thermodynamic engine.",
   "type": "module",
-  "private": true,
-  "engines": {
-    "node": ">=26.13.0",
-    "npm": ">=12"
-  },
-  "devEngines": {
-    "packageManager": {
-      "name": "npm",
-      "version": ">=12",
-      "onFail": "error"
-    }
-  },
   "scripts": {
     "format": "oxfmt",
     "format:check": "oxfmt --check",
@@ -36,5 +25,16 @@
     "oxfmt": "^0.79.0",
     "oxlint": "^1.94.0",
     "typescript": "7.0.2"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "npm",
+      "version": ">=12",
+      "onFail": "error"
+    }
+  },
+  "engines": {
+    "node": ">=26.13.0",
+    "npm": ">=12"
   }
 }

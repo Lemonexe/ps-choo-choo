@@ -36,11 +36,11 @@ also move toward the 5 ms result (with small absolute tolerance for roundoff).
 
 Measured **20 ms versus 5 ms** relative differences, in percent:
 
-| Scenario | Pressure | Speed | Coal | Boiler mass | Enthalpy |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Acceleration, sand, stoker and feed | 0.000131% | 0.007490% | 0.000576% | 0.000077% | 0.000082% |
-| Wheel slip and condenser | 0.000522% | 0.000226% | <0.000001% | 0.000007% | 0.000105% |
-| Manual vent and reduced relief setting | <0.000001% | 0% | <0.000001% | 0.000099% | 0.000072% |
+| Scenario                               |   Pressure |     Speed |       Coal | Boiler mass |  Enthalpy |
+| -------------------------------------- | ---------: | --------: | ---------: | ----------: | --------: |
+| Acceleration, sand, stoker and feed    |  0.000131% | 0.007490% |  0.000576% |   0.000077% | 0.000082% |
+| Wheel slip and condenser               |  0.000522% | 0.000226% | <0.000001% |   0.000007% | 0.000105% |
+| Manual vent and reduced relief setting | <0.000001% |        0% | <0.000001% |   0.000099% | 0.000072% |
 
 The maximum transfer residual observed across those runs was **1.76×10⁻¹¹ kg**
 and **0.000143 J per tick**. These are thermal/chemical control-volume balances,

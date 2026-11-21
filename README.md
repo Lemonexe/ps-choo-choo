@@ -72,18 +72,18 @@ results and numerical tolerances.
 
 ## Code map
 
-| File | Responsibility |
-| --- | --- |
-| `src/physics/thermo.ts` | SI adapter, phase states, equilibrium `(mass, energy, volume)` flash |
-| `src/physics/boiler.ts` | fixed-volume initialization and phase-aware relief |
-| `src/physics/heat.ts` | fire, gas properties, radiation and heat exchange |
-| `src/physics/flow.ts` | equilibrium nozzle, superheater and hydraulic work |
-| `src/physics/cylinder.ts` | periodic cylinder, admission matching and algebraic slip |
-| `src/physics/motion.ts` | train mass, Davis resistance, grade, braking |
-| `src/physics/simulation.ts` | pure previous-to-next tick and reconciled transfer ledger |
-| `src/physics/types.ts` | state contracts and documented parameter estimates |
-| `src/persistence.ts` | versioned snapshot encoding and validation, without storage access |
-| `src/main.ts`, `src/canvas.ts` | browser scheduling, storage, controls and drawing |
+| File                           | Responsibility                                                       |
+| ------------------------------ | -------------------------------------------------------------------- |
+| `src/physics/thermo.ts`        | SI adapter, phase states, equilibrium `(mass, energy, volume)` flash |
+| `src/physics/boiler.ts`        | fixed-volume initialization and phase-aware relief                   |
+| `src/physics/heat.ts`          | fire, gas properties, radiation and heat exchange                    |
+| `src/physics/flow.ts`          | equilibrium nozzle, superheater and hydraulic work                   |
+| `src/physics/cylinder.ts`      | periodic cylinder, admission matching and algebraic slip             |
+| `src/physics/motion.ts`        | train mass, Davis resistance, grade, braking                         |
+| `src/physics/simulation.ts`    | pure previous-to-next tick and reconciled transfer ledger            |
+| `src/physics/types.ts`         | state contracts and documented parameter estimates                   |
+| `src/persistence.ts`           | versioned snapshot encoding and validation, without storage access   |
+| `src/main.ts`, `src/canvas.ts` | browser scheduling, storage, controls and drawing                    |
 
 The coordinator uses a shared old state and equal/opposite transfers. Only the
 new state is returned. Bounded exact-property memoization stores up to 256

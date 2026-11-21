@@ -1,307 +1,385 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101b1c">
-  <title>pS choo choo — Steam laboratory</title>
-  <link rel="stylesheet" href="./styles.css">
-  <script type="importmap">{"imports":{"iapws-if97":"./node_modules/iapws-if97/dist/index.js","iapws-if97/saturation":"./node_modules/iapws-if97/dist/saturation.js","iapws-if97/regions":"./node_modules/iapws-if97/dist/regions.js"}}</script>
-  <script type="module" src="./dist/main.js">
-</script>
-</head>
-<body>
-  <header class="masthead">
-    <a class="brand" href="./" aria-label="pS choo choo home">
-<span class="brand-mark">pS</span>
-<span>choo choo<small>A STEAM LOCOMOTIVE LABORATORY</small>
-</span>
-</a>
-    <div class="session">
-<span id="state-light" class="state-light">
-</span>
-<span id="run-state">PAUSED</span>
-<span class="divider">
-</span>
-<span id="clock">00:00.00</span>
-<button id="run" class="button primary">Run simulation <span aria-hidden="true">▶</span>
-</button>
-<button id="single-step" class="button compact" title="Advance one 20 ms step">Step</button>
-</div>
-  </header>
-  <main>
-    <div class="intro">
-<div>
-<p class="eyebrow">DRG CLASS 01 · EQUILIBRIUM STEAM MODEL</p>
-<h1>A little coal. A lot of physics.</h1>
-<p class="subtitle">Build pressure, find your cutoff, and put steam to work.</p>
-</div>
-<div class="reference-tag">
-<span>01 118</span>
-<small>PACIFIC · 2 CYLINDERS · 16 BAR</small>
-</div>
-</div>
-    <section class="stats" aria-label="Train statistics">
-      <div class="stat">
-<span>SPEED</span>
-<strong id="stat-speed">0.0 <small>km/h</small>
-</strong>
-<div id="stat-direction">At standstill</div>
-</div>
-      <div class="stat">
-<span>INDICATED POWER</span>
-<strong id="stat-power">0 <small>kW</small>
-</strong>
-<div id="stat-traction">0 kW at the rail</div>
-</div>
-      <div class="stat">
-<span>CYCLE THERMAL EFFICIENCY</span>
-<strong id="stat-efficiency">—</strong>
-<div>Estimated · feed pump included</div>
-</div>
-      <div class="stat">
-<span>WATER + STEAM ENTHALPY</span>
-<strong id="stat-enthalpy">0.00 <small>GJ</small>
-</strong>
-<div id="stat-mass">Boiler + tender water</div>
-</div>
-    </section>
-    <nav class="tabs" role="tablist" aria-label="Workspace">
-      <button role="tab" id="tab-cab" aria-controls="panel-cab" aria-selected="true">Driving cab</button>
-      <button role="tab" id="tab-management" aria-controls="panel-management" aria-selected="false">Management</button>
-      <button role="tab" id="tab-specs" aria-controls="panel-specs" aria-selected="false">Specifications</button>
-      <button role="tab" id="tab-about" aria-controls="panel-about" aria-selected="false">About 01 118</button>
-      <button role="tab" id="tab-settings" aria-controls="panel-settings" aria-selected="false">Settings</button>
-      <span class="save-indicator" id="save-status" role="status">Local snapshot</span>
-    </nav>
-    <section id="panel-cab" role="tabpanel" aria-labelledby="tab-cab">
-      <div class="cab-grid">
-        <div class="schematic-card">
-<div class="card-heading">
-<h2>The steam circuit</h2>
-<span class="legend">
-<i class="water-dot">
-</i> water <i class="steam-dot">
-</i> steam <i class="heat-dot">
-</i> heat</span>
-</div>
-<div class="schematic-viewport" tabindex="0" aria-label="Steam circuit, scroll horizontally on small screens">
-<canvas id="schematic" aria-label="Locomotive schematic with boiler, firebox, superheater, cylinder, condenser, tender and live thermodynamic values" role="img">
-</canvas>
-</div>
-<div class="schematic-footer">
-<span id="phase-label">Equilibrium water + steam</span>
-<span>Pressures shown as gauge · temperatures in °C</span>
-</div>
-<div class="flow-stats">
-<span>Steam <strong id="flow-steam">0.00 kg/s</strong>
-</span>
-<span>Coal <strong id="flow-coal">0.00 kg/s</strong>
-</span>
-<span>Feedwater <strong id="flow-feed">0.00 kg/s</strong>
-</span>
-<span>Train <strong id="flow-mass">0 t</strong>
-</span>
-</div>
-</div>
-        <aside class="controls-card">
-<div class="card-heading">
-<h2>Driver’s controls</h2>
-<span class="tiny-tag">LIVE</span>
-</div>
-          <div class="control">
-<label for="throttle">Throttle <output id="throttle-value">0%</output>
-</label>
-<input id="throttle" type="range" min="0" max="100" value="0">
-<div class="range-labels">
-<span>Closed</span>
-<span>Open</span>
-</div>
-</div>
-          <div class="control">
-<label for="reverser">Running gear <output id="reverser-value">Forward</output>
-</label>
-<input id="reverser" type="range" min="-100" max="100" value="60">
-<div class="range-labels">
-<span>Reverse</span>
-<span>Neutral</span>
-<span>Forward</span>
-</div>
-<small id="cutoff-label">Cutoff 47%</small>
-</div>
-          <div class="control">
-<label for="pump">Feedwater pump <output id="pump-value">0%</output>
-</label>
-<input id="pump" type="range" min="0" max="100" value="0">
-</div>
-          <div class="control" id="manual-firing">
-<label>Manual firing <span class="muted">20 kg / charge</span>
-</label>
-<button class="button full" id="coal-charge">＋ Add coal to firebox</button>
-</div>
-          <div class="control" id="automatic-firing" hidden>
-<label for="stoker">Coal stoker <output id="stoker-value">0%</output>
-</label>
-<input id="stoker" type="range" min="0" max="100" value="0">
-</div>
-          <div class="control">
-<label for="brake">Train brake <output id="brake-value">100%</output>
-</label>
-<input id="brake" type="range" min="0" max="100" value="100" class="brake-range">
-</div>
-          <div class="aux-controls">
-<label class="switch-line" for="sand">
-<span>Sand the rails</span>
-<input id="sand" type="checkbox" role="switch">
-</label>
-<button class="button vent" id="vent">Hold to release steam</button>
-</div>
-        </aside>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#101b1c" />
+    <title>pS choo choo — Steam laboratory</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "iapws-if97": "./node_modules/iapws-if97/dist/index.js",
+          "iapws-if97/saturation": "./node_modules/iapws-if97/dist/saturation.js",
+          "iapws-if97/regions": "./node_modules/iapws-if97/dist/regions.js"
+        }
+      }
+    </script>
+    <script type="module" src="./dist/main.js"></script>
+  </head>
+  <body>
+    <header class="masthead">
+      <a class="brand" href="./" aria-label="pS choo choo home">
+        <span class="brand-mark">pS</span>
+        <span>choo choo<small>A STEAM LOCOMOTIVE LABORATORY</small> </span>
+      </a>
+      <div class="session">
+        <span id="state-light" class="state-light"> </span>
+        <span id="run-state">PAUSED</span>
+        <span class="divider"> </span>
+        <span id="clock">00:00.00</span>
+        <button id="run" class="button primary">
+          Run simulation <span aria-hidden="true">▶</span>
+        </button>
+        <button id="single-step" class="button compact" title="Advance one 20 ms step">Step</button>
       </div>
-      <section class="alerts-card" aria-label="Operating alerts">
-<div class="card-heading">
-<h2>Operating notes</h2>
-<span id="alert-count" class="tiny-tag">ALL CLEAR</span>
-</div>
-<div id="alerts" aria-live="polite">
-</div>
-</section>
-    </section>
-    <section id="panel-management" role="tabpanel" aria-labelledby="tab-management" hidden>
-<div class="section-intro">
-<p class="eyebrow">PREPARE YOUR LOCOMOTIVE</p>
-<h2>A head start on the footplate.</h2>
-<p>Pause to replenish supplies or add external preheat energy. To set off: preheat the firebox and boiler, release the brake, then open the throttle gently.</p>
-</div>
-<p id="management-lock" class="notice" hidden>Pause the simulation to use management actions.</p>
-<div class="management-grid">
-      <article class="action-card">
-<span class="action-number">01</span>
-<h3>Fill tender water</h3>
-<p>Top up to 34,000 kg at ambient temperature.</p>
-<button class="button" data-manage="water">Fill water</button>
-</article>
-      <article class="action-card">
-<span class="action-number">02</span>
-<h3>Fill coal bunker</h3>
-<p>Replenish the tender’s 10 tonne coal supply.</p>
-<button class="button" data-manage="coal">Fill coal</button>
-</article>
-      <article class="action-card">
-<span class="action-number">03</span>
-<h3>Prime the boiler</h3>
-<p>Restore a low liquid level to the normal 65% starting fill.</p>
-<button class="button" data-manage="prime">Prime boiler</button>
-</article>
-      <article class="action-card">
-<span class="action-number">04</span>
-<h3>Light the fire</h3>
-<p>Transfer a 200 kg coal bed and preheat the firebox to 827 °C.</p>
-<button class="button" data-manage="fire">Preheat firebox</button>
-</article>
-      <article class="action-card">
-<span class="action-number">05</span>
-<h3>Raise steam</h3>
-<p>Add heat to reach 16 bar gauge without cooling a hotter boiler.</p>
-<button class="button" data-manage="boiler">Preheat boiler</button>
-</article>
-    </div>
-<p id="management-result" class="notice" role="status">Management actions add external mass or energy to the sandbox.</p>
-</section>
-    <section id="panel-specs" role="tabpanel" aria-labelledby="tab-specs" hidden>
-<div class="section-intro">
-<p class="eyebrow">MAKE IT YOUR OWN</p>
-<h2>The train behind the engine.</h2>
-<p>Pause to edit specifications. Carriage changes also require standstill. No mechanical pressure limit is imposed within the property model’s range.</p>
-</div>
-<p id="specs-lock" class="notice" hidden>Pause the simulation to change specifications.</p>
-<div class="specs-grid">
-<div class="form-card">
-<h3>Locomotive</h3>
-<label class="switch-line" for="condenser">
-<span>Atmospheric condenser<small>Recover hot water; lose exhaust-assisted draft</small>
-</span>
-<input id="condenser" type="checkbox" role="switch">
-</label>
-<label class="switch-line" for="automaticStoker">
-<span>Automatic coal stoker<small>Replace manual charges with continuous firing</small>
-</span>
-<input id="automaticStoker" type="checkbox" role="switch">
-</label>
-<label class="number-control" for="reliefPressure">Relief pressure <span>
-<input id="reliefPressure" type="number" min="0.1" max="998.98" step="0.1" value="16"> bar gauge</span>
-</label>
-<p class="muted">Reference working pressure: 16 bar gauge. Above this, an informational banner appears.</p>
-</div>
-<div class="form-card">
-<h3>Train & route</h3>
-<label class="number-control" for="passenger">Passenger carriages <span>
-<input id="passenger" type="number" min="0" max="100" step="1" value="6"> × 45 t</span>
-</label>
-<label class="number-control" for="freight">Loaded freight carriages <span>
-<input id="freight" type="number" min="0" max="100" step="1" value="0"> × 80 t</span>
-</label>
-<label class="number-control" for="slope">Track gradient <span>
-<input id="slope" type="number" min="-100" max="100" step="1" value="0"> ‰</span>
-</label>
-<p class="muted">Positive climbs in the forward direction. Negative descends. Resistance coefficients are engineering estimates.</p>
-</div>
-</div>
-</section>
-    <section id="panel-about" role="tabpanel" aria-labelledby="tab-about" hidden>
-<article class="about-card">
-<p class="eyebrow">THE LOCOMOTIVE BEHIND THE MODEL</p>
-<div class="about-number">01 118</div>
-<h2>A Pacific with a long working life.</h2>
-<p>Built in 1934, 01 118 is a preserved example of the DRG Class 01 express passenger locomotive: a two-cylinder, simple-expansion Pacific with 2 metre driving wheels and a 16 bar boiler. Its dimensions set the scale of pS choo choo, from the 600 × 660 mm cylinders to the 34 m³ water tender and 10 tonne coal bunker. This simulator borrows those proportions and uses simplified equilibrium thermodynamics to let you explore how firing, pressure, cutoff, and adhesion work together.</p>
-<div class="about-links">
-<a class="button" href="https://en.wikipedia.org/wiki/DRG_Class_01" target="_blank" rel="noopener noreferrer">Read on Wikipedia ↗</a>
-<a class="button" href="https://commons.wikimedia.org/wiki/Category:DRG_01_118" target="_blank" rel="noopener noreferrer">Pictures on Wikimedia ↗</a>
-<a href="https://www.historische-eisenbahn-frankfurt.de/wp-content/uploads/2016/07/01118.pdf" target="_blank" rel="noopener noreferrer">Owner’s technical specifications ↗</a>
-</div>
-<div class="about-facts">
-<span>
-<strong>2,000 mm</strong>Driving wheels</span>
-<span>
-<strong>247 m²</strong>Heating surface</span>
-<span>
-<strong>86.5 m²</strong>Superheater</span>
-<span>
-<strong>111.3 t</strong>Working locomotive</span>
-</div>
-</article>
-</section>
-    <section id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" hidden>
-<div class="section-intro">
-<p class="eyebrow">A CLEAN SLATE</p>
-<h2>Back to the beginning.</h2>
-<p>Reset all supplies, controls, specifications, and saved state to the warm, paused starting condition.</p>
-<button id="reset" class="button danger">Reset simulation</button>
-</div>
-</section>
-    <footer>
-<span>pS choo choo <span class="footer-dot">·</span> An equilibrium steam sandbox</span>
-<span>Inspired by 01 118 <span class="footer-dot">·</span> Saved on this device</span>
-</footer>
-  </main>
-  <dialog id="error-modal" aria-labelledby="error-title">
-<p class="eyebrow">SIMULATION PAUSED</p>
-<h2 id="error-title">The next state could not be resolved.</h2>
-<p id="error-message">
-</p>
-<p class="muted">Your last valid state has been retained. Adjust the controls or specifications before trying again, or use management to recover.</p>
-<button id="error-close" class="button primary">Return to the cab</button>
-</dialog>
-  <dialog id="reset-modal" aria-labelledby="reset-title">
-<p class="eyebrow">START AGAIN</p>
-<h2 id="reset-title">Reset this locomotive?</h2>
-<p>This replaces your saved state with the original warm, paused locomotive.</p>
-<div class="dialog-actions">
-<button id="reset-cancel" class="button">Keep current state</button>
-<button id="reset-confirm" class="button danger">Reset everything</button>
-</div>
-</dialog>
-  <div id="toast" class="toast" role="status" hidden>
-</div>
-</body>
+    </header>
+    <main>
+      <div class="intro">
+        <div>
+          <p class="eyebrow">DRG CLASS 01 · EQUILIBRIUM STEAM MODEL</p>
+          <h1>A little coal. A lot of physics.</h1>
+          <p class="subtitle">Build pressure, find your cutoff, and put steam to work.</p>
+        </div>
+        <div class="reference-tag">
+          <span>01 118</span>
+          <small>PACIFIC · 2 CYLINDERS · 16 BAR</small>
+        </div>
+      </div>
+      <section class="stats" aria-label="Train statistics">
+        <div class="stat">
+          <span>SPEED</span>
+          <strong id="stat-speed">0.0 <small>km/h</small> </strong>
+          <div id="stat-direction">At standstill</div>
+        </div>
+        <div class="stat">
+          <span>INDICATED POWER</span>
+          <strong id="stat-power">0 <small>kW</small> </strong>
+          <div id="stat-traction">0 kW at the rail</div>
+        </div>
+        <div class="stat">
+          <span>CYCLE THERMAL EFFICIENCY</span>
+          <strong id="stat-efficiency">—</strong>
+          <div>Estimated · feed pump included</div>
+        </div>
+        <div class="stat">
+          <span>WATER + STEAM ENTHALPY</span>
+          <strong id="stat-enthalpy">0.00 <small>GJ</small> </strong>
+          <div id="stat-mass">Boiler + tender water</div>
+        </div>
+      </section>
+      <nav class="tabs" role="tablist" aria-label="Workspace">
+        <button role="tab" id="tab-cab" aria-controls="panel-cab" aria-selected="true">
+          Driving cab
+        </button>
+        <button
+          role="tab"
+          id="tab-management"
+          aria-controls="panel-management"
+          aria-selected="false"
+        >
+          Management
+        </button>
+        <button role="tab" id="tab-specs" aria-controls="panel-specs" aria-selected="false">
+          Specifications
+        </button>
+        <button role="tab" id="tab-about" aria-controls="panel-about" aria-selected="false">
+          About 01 118
+        </button>
+        <button role="tab" id="tab-settings" aria-controls="panel-settings" aria-selected="false">
+          Settings
+        </button>
+        <span class="save-indicator" id="save-status" role="status">Local snapshot</span>
+      </nav>
+      <section id="panel-cab" role="tabpanel" aria-labelledby="tab-cab">
+        <div class="cab-grid">
+          <div class="schematic-card">
+            <div class="card-heading">
+              <h2>The steam circuit</h2>
+              <span class="legend">
+                <i class="water-dot"> </i> water <i class="steam-dot"> </i> steam
+                <i class="heat-dot"> </i> heat</span
+              >
+            </div>
+            <div
+              class="schematic-viewport"
+              tabindex="0"
+              aria-label="Steam circuit, scroll horizontally on small screens"
+            >
+              <canvas
+                id="schematic"
+                aria-label="Locomotive schematic with boiler, firebox, superheater, cylinder, condenser, tender and live thermodynamic values"
+                role="img"
+              >
+              </canvas>
+            </div>
+            <div class="schematic-footer">
+              <span id="phase-label">Equilibrium water + steam</span>
+              <span>Pressures shown as gauge · temperatures in °C</span>
+            </div>
+            <div class="flow-stats">
+              <span>Steam <strong id="flow-steam">0.00 kg/s</strong> </span>
+              <span>Coal <strong id="flow-coal">0.00 kg/s</strong> </span>
+              <span>Feedwater <strong id="flow-feed">0.00 kg/s</strong> </span>
+              <span>Train <strong id="flow-mass">0 t</strong> </span>
+            </div>
+          </div>
+          <aside class="controls-card">
+            <div class="card-heading">
+              <h2>Driver’s controls</h2>
+              <span class="tiny-tag">LIVE</span>
+            </div>
+            <div class="control">
+              <label for="throttle">Throttle <output id="throttle-value">0%</output> </label>
+              <input id="throttle" type="range" min="0" max="100" value="0" />
+              <div class="range-labels">
+                <span>Closed</span>
+                <span>Open</span>
+              </div>
+            </div>
+            <div class="control">
+              <label for="reverser"
+                >Running gear <output id="reverser-value">Forward</output>
+              </label>
+              <input id="reverser" type="range" min="-100" max="100" value="60" />
+              <div class="range-labels">
+                <span>Reverse</span>
+                <span>Neutral</span>
+                <span>Forward</span>
+              </div>
+              <small id="cutoff-label">Cutoff 47%</small>
+            </div>
+            <div class="control">
+              <label for="pump">Feedwater pump <output id="pump-value">0%</output> </label>
+              <input id="pump" type="range" min="0" max="100" value="0" />
+            </div>
+            <div class="control" id="manual-firing">
+              <label>Manual firing <span class="muted">20 kg / charge</span> </label>
+              <button class="button full" id="coal-charge">＋ Add coal to firebox</button>
+            </div>
+            <div class="control" id="automatic-firing" hidden>
+              <label for="stoker">Coal stoker <output id="stoker-value">0%</output> </label>
+              <input id="stoker" type="range" min="0" max="100" value="0" />
+            </div>
+            <div class="control">
+              <label for="brake">Train brake <output id="brake-value">100%</output> </label>
+              <input id="brake" type="range" min="0" max="100" value="100" class="brake-range" />
+            </div>
+            <div class="aux-controls">
+              <label class="switch-line" for="sand">
+                <span>Sand the rails</span>
+                <input id="sand" type="checkbox" role="switch" />
+              </label>
+              <button class="button vent" id="vent">Hold to release steam</button>
+            </div>
+          </aside>
+        </div>
+        <section class="alerts-card" aria-label="Operating alerts">
+          <div class="card-heading">
+            <h2>Operating notes</h2>
+            <span id="alert-count" class="tiny-tag">ALL CLEAR</span>
+          </div>
+          <div id="alerts" aria-live="polite"></div>
+        </section>
+      </section>
+      <section id="panel-management" role="tabpanel" aria-labelledby="tab-management" hidden>
+        <div class="section-intro">
+          <p class="eyebrow">PREPARE YOUR LOCOMOTIVE</p>
+          <h2>A head start on the footplate.</h2>
+          <p>
+            Pause to replenish supplies or add external preheat energy. To set off: preheat the
+            firebox and boiler, release the brake, then open the throttle gently.
+          </p>
+        </div>
+        <p id="management-lock" class="notice" hidden>
+          Pause the simulation to use management actions.
+        </p>
+        <div class="management-grid">
+          <article class="action-card">
+            <span class="action-number">01</span>
+            <h3>Fill tender water</h3>
+            <p>Top up to 34,000 kg at ambient temperature.</p>
+            <button class="button" data-manage="water">Fill water</button>
+          </article>
+          <article class="action-card">
+            <span class="action-number">02</span>
+            <h3>Fill coal bunker</h3>
+            <p>Replenish the tender’s 10 tonne coal supply.</p>
+            <button class="button" data-manage="coal">Fill coal</button>
+          </article>
+          <article class="action-card">
+            <span class="action-number">03</span>
+            <h3>Prime the boiler</h3>
+            <p>Restore a low liquid level to the normal 65% starting fill.</p>
+            <button class="button" data-manage="prime">Prime boiler</button>
+          </article>
+          <article class="action-card">
+            <span class="action-number">04</span>
+            <h3>Light the fire</h3>
+            <p>Transfer a 200 kg coal bed and preheat the firebox to 827 °C.</p>
+            <button class="button" data-manage="fire">Preheat firebox</button>
+          </article>
+          <article class="action-card">
+            <span class="action-number">05</span>
+            <h3>Raise steam</h3>
+            <p>Add heat to reach 16 bar gauge without cooling a hotter boiler.</p>
+            <button class="button" data-manage="boiler">Preheat boiler</button>
+          </article>
+        </div>
+        <p id="management-result" class="notice" role="status">
+          Management actions add external mass or energy to the sandbox.
+        </p>
+      </section>
+      <section id="panel-specs" role="tabpanel" aria-labelledby="tab-specs" hidden>
+        <div class="section-intro">
+          <p class="eyebrow">MAKE IT YOUR OWN</p>
+          <h2>The train behind the engine.</h2>
+          <p>
+            Pause to edit specifications. Carriage changes also require standstill. No mechanical
+            pressure limit is imposed within the property model’s range.
+          </p>
+        </div>
+        <p id="specs-lock" class="notice" hidden>Pause the simulation to change specifications.</p>
+        <div class="specs-grid">
+          <div class="form-card">
+            <h3>Locomotive</h3>
+            <label class="switch-line" for="condenser">
+              <span
+                >Atmospheric condenser<small>Recover hot water; lose exhaust-assisted draft</small>
+              </span>
+              <input id="condenser" type="checkbox" role="switch" />
+            </label>
+            <label class="switch-line" for="automaticStoker">
+              <span
+                >Automatic coal stoker<small>Replace manual charges with continuous firing</small>
+              </span>
+              <input id="automaticStoker" type="checkbox" role="switch" />
+            </label>
+            <label class="number-control" for="reliefPressure"
+              >Relief pressure
+              <span>
+                <input
+                  id="reliefPressure"
+                  type="number"
+                  min="0.1"
+                  max="998.98"
+                  step="0.1"
+                  value="16"
+                />
+                bar gauge</span
+              >
+            </label>
+            <p class="muted">
+              Reference working pressure: 16 bar gauge. Above this, an informational banner appears.
+            </p>
+          </div>
+          <div class="form-card">
+            <h3>Train & route</h3>
+            <label class="number-control" for="passenger"
+              >Passenger carriages
+              <span>
+                <input id="passenger" type="number" min="0" max="100" step="1" value="6" /> × 45
+                t</span
+              >
+            </label>
+            <label class="number-control" for="freight"
+              >Loaded freight carriages
+              <span>
+                <input id="freight" type="number" min="0" max="100" step="1" value="0" /> × 80
+                t</span
+              >
+            </label>
+            <label class="number-control" for="slope"
+              >Track gradient
+              <span>
+                <input id="slope" type="number" min="-100" max="100" step="1" value="0" /> ‰</span
+              >
+            </label>
+            <p class="muted">
+              Positive climbs in the forward direction. Negative descends. Resistance coefficients
+              are engineering estimates.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section id="panel-about" role="tabpanel" aria-labelledby="tab-about" hidden>
+        <article class="about-card">
+          <p class="eyebrow">THE LOCOMOTIVE BEHIND THE MODEL</p>
+          <div class="about-number">01 118</div>
+          <h2>A Pacific with a long working life.</h2>
+          <p>
+            Built in 1934, 01 118 is a preserved example of the DRG Class 01 express passenger
+            locomotive: a two-cylinder, simple-expansion Pacific with 2 metre driving wheels and a
+            16 bar boiler. Its dimensions set the scale of pS choo choo, from the 600 × 660 mm
+            cylinders to the 34 m³ water tender and 10 tonne coal bunker. This simulator borrows
+            those proportions and uses simplified equilibrium thermodynamics to let you explore how
+            firing, pressure, cutoff, and adhesion work together.
+          </p>
+          <div class="about-links">
+            <a
+              class="button"
+              href="https://en.wikipedia.org/wiki/DRG_Class_01"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Read on Wikipedia ↗</a
+            >
+            <a
+              class="button"
+              href="https://commons.wikimedia.org/wiki/Category:DRG_01_118"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Pictures on Wikimedia ↗</a
+            >
+            <a
+              href="https://www.historische-eisenbahn-frankfurt.de/wp-content/uploads/2016/07/01118.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Owner’s technical specifications ↗</a
+            >
+          </div>
+          <div class="about-facts">
+            <span> <strong>2,000 mm</strong>Driving wheels</span>
+            <span> <strong>247 m²</strong>Heating surface</span>
+            <span> <strong>86.5 m²</strong>Superheater</span>
+            <span> <strong>111.3 t</strong>Working locomotive</span>
+          </div>
+        </article>
+      </section>
+      <section id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" hidden>
+        <div class="section-intro">
+          <p class="eyebrow">A CLEAN SLATE</p>
+          <h2>Back to the beginning.</h2>
+          <p>
+            Reset all supplies, controls, specifications, and saved state to the warm, paused
+            starting condition.
+          </p>
+          <button id="reset" class="button danger">Reset simulation</button>
+        </div>
+      </section>
+      <footer>
+        <span>pS choo choo <span class="footer-dot">·</span> An equilibrium steam sandbox</span>
+        <span>Inspired by 01 118 <span class="footer-dot">·</span> Saved on this device</span>
+      </footer>
+    </main>
+    <dialog id="error-modal" aria-labelledby="error-title">
+      <p class="eyebrow">SIMULATION PAUSED</p>
+      <h2 id="error-title">The next state could not be resolved.</h2>
+      <p id="error-message"></p>
+      <p class="muted">
+        Your last valid state has been retained. Adjust the controls or specifications before trying
+        again, or use management to recover.
+      </p>
+      <button id="error-close" class="button primary">Return to the cab</button>
+    </dialog>
+    <dialog id="reset-modal" aria-labelledby="reset-title">
+      <p class="eyebrow">START AGAIN</p>
+      <h2 id="reset-title">Reset this locomotive?</h2>
+      <p>This replaces your saved state with the original warm, paused locomotive.</p>
+      <div class="dialog-actions">
+        <button id="reset-cancel" class="button">Keep current state</button>
+        <button id="reset-confirm" class="button danger">Reset everything</button>
+      </div>
+    </dialog>
+    <div id="toast" class="toast" role="status" hidden></div>
+  </body>
 </html>
