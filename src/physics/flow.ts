@@ -1,5 +1,5 @@
 import { solveBracket, clamp, maximize } from "./math.js";
-import { ATM, ph, ps, pt, type Water } from "./thermo.js";
+import { ATM, liquidTakeoff, ph, ps, pt, type Water } from "./thermo.js";
 import { DESIGN } from "./types.js";
 
 export interface Nozzle {
@@ -39,6 +39,21 @@ export function nozzle(upstream: Water, minimum = ATM): Nozzle {
     throat,
     maximum: cap,
     flux: (downstream) => (downstream <= throat ? cap : flux(downstream)),
+  };
+}
+
+/** Pressure-driven bottom blowdown, with equilibrium flashing in the nozzle.
+ * Its discharged stream carries liquid inlet enthalpy, not vapor enthalpy. */
+export function liquidBlowdown(bulk: Water, mass: number, dt: number): { rate: number; h: number } {
+  const liquid = liquidTakeoff(bulk);
+  if (!liquid || bulk.p <= ATM * (1 + 1e-8)) return { rate: 0, h: 0 };
+  const available = bulk.x === null ? mass : mass * (1 - bulk.x);
+  return {
+    rate: Math.min(
+      nozzle(liquid).flux(ATM) * DESIGN.blowdownValveArea * DESIGN.discharge,
+      available / dt,
+    ),
+    h: liquid.h,
   };
 }
 

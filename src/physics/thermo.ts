@@ -308,6 +308,13 @@ export function vaporTakeoff(state: Water): Water {
     : state;
 }
 
+/** Bottom takeoff selects liquid, never the vapor or an undefined critical phase. */
+export function liquidTakeoff(state: Water): Water | null {
+  if (state.phase === "liquid") return state;
+  if (state.x !== null && state.x < 1) return saturation(state.T).liquid;
+  return null;
+}
+
 export function waterLevel(state: Water): number | null {
   if (state.phase === "supercritical" || (state.T >= TC && state.p < PC)) return null;
   if (state.x === null) return state.phase === "liquid" ? 1 : 0;

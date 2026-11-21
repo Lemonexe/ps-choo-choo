@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { initialState, manage, step, inspect } from "../dist/physics/simulation.js";
 import { thermalEnergy } from "../dist/physics/heat.js";
 import { DESIGN } from "../dist/physics/types.js";
+import { pt } from "../dist/physics/thermo.js";
 
 const seconds = Number(process.env.CONVERGENCE_SECONDS || 10);
 const scenarios = {
@@ -18,6 +19,17 @@ const scenarios = {
   "vent + relief"(s) {
     s.controls.vent = true;
     s.specs.reliefPressure *= 0.95;
+  },
+  "liquid blowdown"(s) {
+    const water = pt(2e6, 470),
+      mass = DESIGN.boilerVolume / water.v;
+    s.boiler = {
+      mass,
+      energy: mass * water.u,
+      metalEnergy: thermalEnergy(water.T, DESIGN.boilerMetalCapacity),
+    };
+    s.specs.reliefPressure = 3e6;
+    s.controls.blowdown = true;
   },
 };
 const records = [];

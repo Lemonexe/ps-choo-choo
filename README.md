@@ -38,6 +38,8 @@ review its output. Build and test commands do not require PMG.
 4. Add 20 kg coal charges, or enable the stoker in **Specifications**.
 5. Feed water before the boiler level reaches the tubes. The ideal steam-driven
    pump works while stationary once sufficient pressure is available.
+6. To recover from overfilling, turn the feed pump off and hold **water blowdown**
+   to drain liquid until steam admission is restored. Release to close the drain.
 
 Use the play/pause button to resume or pause, and ×2, ×4, or ×8 to select playback
 speed and resume. Clicking the selected speed returns to 1× without changing
@@ -47,8 +49,11 @@ seconds, so it advances faster during acceleration. Acceleration runs more fixed
 20 ms steps, without enlarging the physics timestep.
 
 Start/restore is always paused. Hidden tabs pause automatically. The manual steam
-release operates only while its button is held; release, lost capture, loss of
-focus, pause, and reload clear it. State is saved on this device, not uploaded.
+release and liquid blowdown operate only while their buttons are held; release,
+lost capture, loss of focus, pause, and reload close both. Blowdown discharges to
+atmosphere, requires positive gauge pressure and liquid, and does not recover
+water through the condenser. State is saved on this device, not uploaded. Existing
+version-1 saves migrate automatically, preserving their boiler and supplies.
 All specifications require pause; changing carriage counts also requires near
 standstill. Reset asks before replacing the saved locomotive.
 

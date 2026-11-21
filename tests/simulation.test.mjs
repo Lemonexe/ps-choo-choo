@@ -183,14 +183,19 @@ test("management actions expose external balances, preserve hot water, and never
   assert.equal(charged.fire.coal, coal + 20);
   assert.equal(storedMass(s), storedMass(charged));
 });
-test("snapshots are versioned, reject corrupt states, and release held vent on restore", () => {
+test("snapshots are versioned, reject corrupt states, and release held valves on restore", () => {
   const s = hot();
   s.controls.vent = true;
+  s.controls.blowdown = true;
   const loaded = decode(encode(s));
   assert.equal(loaded.controls.vent, false);
+  assert.equal(loaded.controls.blowdown, false);
+  const raw = JSON.parse(encode(s));
+  assert.equal(raw.version, 2);
+  assert.equal(raw.state.controls.blowdown, false);
   assert.deepEqual(loaded.boiler, s.boiler);
   assert.throws(() => decode("{"));
-  assert.throws(() => decode('{"version":2}'));
+  assert.throws(() => decode('{"version":99}'));
   const bad = JSON.parse(encode(s));
   bad.state.tank.mass = -10;
   assert.throws(() => decode(JSON.stringify(bad)));
@@ -221,7 +226,7 @@ test("cycle efficiency uses a per-kg feedwater reference independent of live fee
 test("snapshot validation rejects vapor-filled and impossible empty tender states", () => {
   const s = hot();
   s.tank.energy = s.tank.mass * pt(ATM, 500).h;
-  assert.throws(() => decode(JSON.stringify({ version: 1, state: s })));
+  assert.throws(() => decode(JSON.stringify({ version: 2, state: s })));
   s.tank.mass = 0;
   s.tank.energy = 1000;
   assert.throws(() => step(s));

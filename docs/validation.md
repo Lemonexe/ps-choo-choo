@@ -6,7 +6,7 @@ are pinned in `package-lock.json`.
 
 ## Automated checks
 
-- **31 passing tests** through `npm test`, including the DOM-free physics build.
+- **39 passing tests** through `npm test`, including the DOM-free physics build.
 - Published IF97 forward cases for Regions 1, 2, 3 and 5; direct saturation cases
   for Region 4. Forward reference comparisons allow 2×10⁻⁷ relative discrepancy
   against rounded published values.
@@ -74,6 +74,9 @@ finished without a solver failure. It took about 25 seconds wall time on this ho
   1× that preserves pause/run state. Whole-second elapsed simulation time advances
   8× as fast at 8× playback for the same number of timer callbacks.
 - Held manual vent and pointer release.
+- Liquid blowdown restores admission from an overfilled version-1 save without
+  resetting the boiler. Pointer/keyboard release, cancellation, focus loss, pause,
+  hidden-document pause and reload close the valve. Snapshots migrate to version 2.
 - Paused-only specification/management controls.
 - Saved controls/specifications and paused reload.
 - Hidden-document automatic pause.

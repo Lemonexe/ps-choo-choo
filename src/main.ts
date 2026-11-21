@@ -50,7 +50,7 @@ function save(): void {
 }
 function setRunning(value: boolean): void {
   running = value;
-  if (!running) state = { ...state, controls: { ...state.controls, vent: false } };
+  if (!running) state = { ...state, controls: { ...state.controls, vent: false, blowdown: false } };
   const button = element<HTMLButtonElement>("run");
   const label = running ? "Pause simulation" : "Resume simulation";
   button.setAttribute("aria-label", label);
@@ -95,7 +95,10 @@ function sync(): void {
     `Admission cutoff ${(cutoffPercent(reverse) * 100).toFixed(0)}% of stroke`,
   );
   element<HTMLInputElement>("sand").checked = state.controls.sand;
-  element("vent").classList.toggle("held", state.controls.vent);
+  for (const id of ["vent", "blowdown"] as const) {
+    element(id).classList.toggle("held", state.controls[id]);
+    element(id).setAttribute("aria-pressed", String(state.controls[id]));
+  }
   element("automatic-firing").hidden = !state.specs.automaticStoker;
   element("manual-firing").hidden = state.specs.automaticStoker;
   for (const id of ["condenser", "automaticStoker"] as const) {
@@ -247,41 +250,48 @@ element("coal-charge").addEventListener("click", () => {
   save();
 });
 
-function vent(value: boolean): void {
-  state = { ...state, controls: { ...state.controls, vent: value } };
-  element("vent").classList.toggle("held", value);
+function holdValve(id: "vent" | "blowdown", value: boolean): void {
+  state = { ...state, controls: { ...state.controls, [id]: value } };
+  element(id).classList.toggle("held", value);
+  element(id).setAttribute("aria-pressed", String(value));
   dirty = true;
 }
-const ventButton = element<HTMLButtonElement>("vent");
-ventButton.addEventListener("pointerdown", (e) => {
-  if (e.button !== 0) return;
-  ventButton.setPointerCapture(e.pointerId);
-  vent(true);
-});
-for (const event of ["pointerup", "pointercancel", "lostpointercapture"] as const)
-  ventButton.addEventListener(event, () => vent(false));
-ventButton.addEventListener("keydown", (e) => {
-  if (e.key === " " || e.key === "Enter") {
-    e.preventDefault();
-    vent(true);
-  }
-});
-ventButton.addEventListener("keyup", (e) => {
-  if (e.key === " " || e.key === "Enter") {
-    e.preventDefault();
-    vent(false);
-  }
-});
-ventButton.addEventListener("blur", () => vent(false));
+for (const id of ["vent", "blowdown"] as const) {
+  const button = element<HTMLButtonElement>(id);
+  button.addEventListener("pointerdown", (e) => {
+    if (e.button !== 0) return;
+    button.setPointerCapture(e.pointerId);
+    holdValve(id, true);
+  });
+  for (const event of ["pointerup", "pointercancel", "lostpointercapture"] as const)
+    button.addEventListener(event, () => holdValve(id, false));
+  button.addEventListener("keydown", (e) => {
+    if (e.key === " " || e.key === "Enter") {
+      e.preventDefault();
+      holdValve(id, true);
+    }
+  });
+  button.addEventListener("keyup", (e) => {
+    if (e.key === " " || e.key === "Enter") {
+      e.preventDefault();
+      holdValve(id, false);
+    }
+  });
+  button.addEventListener("blur", () => holdValve(id, false));
+}
+function releaseValves(): void {
+  holdValve("vent", false);
+  holdValve("blowdown", false);
+}
 window.addEventListener("blur", () => {
-  vent(false);
+  releaseValves();
   save();
 });
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) setRunning(false);
 });
 window.addEventListener("pagehide", () => {
-  vent(false);
+  releaseValves();
   save();
 });
 

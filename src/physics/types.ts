@@ -21,6 +21,7 @@ export interface Controls {
   brake: number;
   sand: boolean;
   vent: boolean;
+  blowdown: boolean;
 }
 export interface Specs {
   condenser: boolean;
@@ -82,6 +83,7 @@ export interface Diagnostics {
   burnRate: number;
   feedRate: number;
   reliefRate: number;
+  blowdownRate: number;
   condenserHeat: number;
   pumpPower: number;
   efficiency: number | null;
@@ -132,6 +134,7 @@ export const DESIGN = Object.freeze({
   steamUA: 15000,
   valveArea: 0.003,
   manualValveArea: 0.0003,
+  blowdownValveArea: 0.001,
   discharge: 0.78,
 });
 export const DT = 0.02;

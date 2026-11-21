@@ -2,7 +2,7 @@ import { initialState, inspect, validateState } from "./physics/simulation.js";
 import type { State } from "./physics/types.js";
 
 export const STORAGE_KEY = "ps-choo-choo.snapshot";
-const VERSION = 1;
+const VERSION = 2;
 
 /** Strict shape validation prevents missing fields, strings, NaN and prototype surprises. */
 function sameShape(value: unknown, example: unknown): boolean {
@@ -23,7 +23,7 @@ export function encode(state: State): string {
   // A held button must not remain pressed after reload or losing focus.
   return JSON.stringify({
     version: VERSION,
-    state: { ...state, controls: { ...state.controls, vent: false } },
+    state: { ...state, controls: { ...state.controls, vent: false, blowdown: false } },
   });
 }
 export function decode(raw: string): State {
@@ -32,15 +32,28 @@ export function decode(raw: string): State {
     !data ||
     typeof data !== "object" ||
     !("version" in data) ||
-    data.version !== VERSION ||
+    (data.version !== 1 && data.version !== VERSION) ||
     !("state" in data)
   )
     throw new Error("Saved state uses an unsupported format.");
-  if (!sameShape(data.state, initialState()))
+  let candidate = data.state;
+  if (data.version === 1) {
+    // Preserve existing boilers (including overfilled ones); only add the new
+    // momentary control after validating the complete original snapshot shape.
+    const example = initialState();
+    const controls: Partial<State["controls"]> = { ...example.controls };
+    delete controls.blowdown;
+    if (!sameShape(candidate, { ...example, controls }))
+      throw new Error("Saved state has invalid or missing fields.");
+    const old = candidate as State;
+    candidate = { ...old, controls: { ...old.controls, blowdown: false } };
+  }
+  if (!sameShape(candidate, initialState()))
     throw new Error("Saved state has invalid or missing fields.");
-  const state = data.state as State;
+  const state = candidate as State;
   validateState(state);
   inspect(state);
   state.controls.vent = false;
+  state.controls.blowdown = false;
   return state;
 }

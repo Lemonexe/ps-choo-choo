@@ -135,6 +135,16 @@ blowdown. Large instantaneous pressure-setting changes are approximate; ordinary
 small per-tick relief corrections are the intended use. Manual release uses a
 finite nozzle area and phase-aware outlet enthalpy.
 
+Bottom **liquid blowdown** uses the same equilibrium nozzle with an estimated
+0.001 m² area and Cd=0.78. Select saturated liquid in a two-phase boiler or bulk
+compressed liquid in a liquid-full boiler. It cannot withdraw vapor or an undefined
+supercritical liquid phase. Positive gauge pressure drives flow; gravity drainage
+and reverse atmospheric inflow are omitted. Cap withdrawal by the available liquid
+mass and reconcile its mass and energy with all other old-state withdrawals.
+Subtract `ṁblowdown hliquid` from boiler energy and include it in external exports.
+The water may flash downstream; discharged stagnation enthalpy remains the liquid
+inlet enthalpy. Nothing returns to the tender, even with the condenser enabled.
+
 ## Motion, efficiency and energy diagnostics
 
     R = 1600+65|v|+5v²

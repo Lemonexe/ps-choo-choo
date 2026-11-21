@@ -1,6 +1,6 @@
 import { filledBoiler, atPressureVolume, relief } from "./boiler.js";
 import { engineContext, traction } from "./cylinder.js";
-import { hydraulicPump, nozzle } from "./flow.js";
+import { hydraulicPump, liquidBlowdown, nozzle } from "./flow.js";
 import { firebox, gasExchanger, temperature, thermalEnergy, waterConductance } from "./heat.js";
 import { finite, SimulationError } from "./math.js";
 import { move, trainMass } from "./motion.js";
@@ -36,6 +36,7 @@ export function initialState(): State {
       brake: 1,
       sand: false,
       vent: false,
+      blowdown: false,
     },
     specs: {
       condenser: false,
@@ -144,6 +145,14 @@ function alerts(
   if (d.boiler.p < ATM + 2e5)
     add("pressure", "Low boiler pressure — little starting force available.");
   if (d.reliefRate > 0) add("relief", "Relief valve open — mass and energy vented.");
+  if (d.blowdownRate > 0)
+    add("blowdown", "Blowdown open — liquid water draining from the boiler.", "info");
+  else if (s.controls.blowdown)
+    add(
+      "blowdown-unavailable",
+      "Blowdown requires liquid water and pressure above atmosphere.",
+      "info",
+    );
   if (d.slipPower > 100) add("slip", "Driving wheels slipping — power dissipated at the rail.");
   if (d.boiler.p > DESIGN.nominalPressure * 1.001)
     add("rating", "Pressure exceeds the reference locomotive’s 16 bar gauge rating.", "info");
@@ -177,6 +186,7 @@ export function inspect(s: State): Diagnostics {
     burnRate: 0,
     feedRate: 0,
     reliefRate: 0,
+    blowdownRate: 0,
     condenserHeat: 0,
     pumpPower: 0,
     efficiency: null,
@@ -229,12 +239,15 @@ export function step(previous: State, dt = DT): Step {
     s.controls.vent && water.p > ATM
       ? nozzle(takeoff).flux(ATM) * DESIGN.manualValveArea * DESIGN.discharge
       : 0;
-  const outgoing = e.steam + bleed + vent;
-  const available = Math.min(
-    (s.boiler.mass * 0.9) / dt,
-    (Math.max(0, s.boiler.energy) * 0.9) / (Math.max(1, takeoff.h) * dt),
+  const drain = s.controls.blowdown ? liquidBlowdown(water, s.boiler.mass, dt) : { rate: 0, h: 0 };
+  let blowdown = drain.rate;
+  const outgoing = e.steam + bleed + vent + blowdown;
+  const outgoingEnergy = (e.steam + bleed + vent) * takeoff.h + blowdown * drain.h;
+  const scale = Math.min(
+    1,
+    outgoing > 0 ? (s.boiler.mass * 0.9) / (outgoing * dt) : 1,
+    outgoingEnergy > 0 ? (Math.max(0, s.boiler.energy) * 0.9) / (outgoingEnergy * dt) : 1,
   );
-  const scale = outgoing > available ? available / outgoing : 1;
   if (scale < 1) {
     e = {
       ...e,
@@ -246,6 +259,7 @@ export function step(previous: State, dt = DT): Step {
     feed *= scale;
     bleed *= scale;
     vent *= scale;
+    blowdown *= scale;
     pump = hydraulicPump(tankWater, water.p, feed);
   }
   const fire = firebox(s.fire, e.steam, s.specs.condenser, dt);
@@ -292,10 +306,14 @@ export function step(previous: State, dt = DT): Step {
         s.fire.energy + (fire.burn * DESIGN.lhv - radiation - fire.gasHeat - fire.ambient) * dt,
     },
     boiler: {
-      mass: s.boiler.mass + (feed - e.steam - bleed - vent) * dt,
+      mass: s.boiler.mass + (feed - e.steam - bleed - vent - blowdown) * dt,
       energy:
         s.boiler.energy +
-        (boilHeat + feed * pump.outlet.h - (e.steam + bleed + vent) * takeoff.h) * dt,
+        (boilHeat +
+          feed * pump.outlet.h -
+          (e.steam + bleed + vent) * takeoff.h -
+          blowdown * drain.h) *
+          dt,
       metalEnergy: s.boiler.metalEnergy + (radiation + primary.heat - boilHeat - boilerLoss) * dt,
     },
     superheaterEnergy: s.superheaterEnergy + (shGas.heat - e.heat - shLoss) * dt,
@@ -311,7 +329,7 @@ export function step(previous: State, dt = DT): Step {
   next.speed = motion.speed;
   validateState(next);
   const finalWater = released.mass > 0 ? boilerWater(next) : interim;
-  const massOut = (fire.burn + vent + exhaustMass - recovered) * dt + released.mass;
+  const massOut = (fire.burn + vent + blowdown + exhaustMass - recovered) * dt + released.mass;
   const gasExhaustHeat = fire.gasHeat - shGas.heat - primary.heat;
   const energyOut =
     (fire.ambient +
@@ -321,6 +339,7 @@ export function step(previous: State, dt = DT): Step {
       gasExhaustHeat +
       e.power +
       vent * takeoff.h +
+      blowdown * drain.h +
       condenserHeat +
       externalExhaust) *
       dt +
@@ -350,6 +369,7 @@ export function step(previous: State, dt = DT): Step {
     burnRate: fire.burn,
     feedRate: feed,
     reliefRate: released.mass / dt,
+    blowdownRate: blowdown,
     condenserHeat,
     pumpPower: pump.work,
     efficiency,

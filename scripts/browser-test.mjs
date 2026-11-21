@@ -2,6 +2,9 @@ import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 import { once } from "node:events";
 import { serve } from "./serve.mjs";
+import { initialState } from "../dist/physics/simulation.js";
+import { pt } from "../dist/physics/thermo.js";
+import { DESIGN } from "../dist/physics/types.js";
 
 const server = serve(0);
 if (!server.listening) await once(server, "listening");
@@ -213,10 +216,109 @@ try {
   assert.equal(await playback.locator("#run").getAttribute("aria-pressed"), "true");
   assert.equal(await playback.locator('[data-speed][aria-pressed="true"]').count(), 0);
   await playback.close();
+  // Load the original schema to reproduce an existing overfilled save, without
+  // resetting its boiler. Recover through the real held liquid-drain control.
+  const overfilled = initialState(),
+    water = pt(2e6, 470),
+    mass = DESIGN.boilerVolume / water.v;
+  overfilled.boiler = {
+    mass,
+    energy: mass * water.u,
+    metalEnergy: (water.T - DESIGN.ambient) * DESIGN.boilerMetalCapacity,
+  };
+  overfilled.specs.reliefPressure = 3e6;
+  overfilled.speed = 5;
+  overfilled.controls.throttle = 0.2;
+  overfilled.controls.brake = 0;
+  const legacy = JSON.parse(JSON.stringify(overfilled));
+  delete legacy.controls.blowdown;
+  const recovery = await browser.newPage();
+  recovery.on("pageerror", (error) => errors.push(error.message));
+  await recovery.addInitScript(
+    (raw) => {
+      if (!sessionStorage.getItem("blowdown-fixture-loaded")) {
+        localStorage.setItem("ps-choo-choo.snapshot", raw);
+        sessionStorage.setItem("blowdown-fixture-loaded", "true");
+      }
+    },
+    JSON.stringify({ version: 1, state: legacy }),
+  );
+  await recovery.goto(base);
+  assert.equal(await recovery.locator("#error-modal").evaluate((el) => el.open), false);
+  assert.equal(await recovery.locator("#phase-label").textContent(), "Liquid-filled boiler");
+  await recovery.locator("#run").click();
+  await recovery.locator('[data-alert="liquid"]').waitFor();
+  const drain = recovery.locator("#blowdown");
+  await drain.hover();
+  await recovery.mouse.down();
+  assert.equal(await drain.getAttribute("aria-pressed"), "true");
+  await recovery.locator('[data-alert="blowdown"]').waitFor();
+  await recovery.locator('[data-alert="liquid"]').waitFor({ state: "detached" });
+  await recovery.waitForFunction(
+    () => parseFloat(document.getElementById("flow-steam").textContent) > 0,
+  );
+  await recovery.mouse.up();
+  assert.equal(await drain.getAttribute("aria-pressed"), "false");
+  await recovery.locator("#run").click();
+  const recovered = await recovery.evaluate(() =>
+    JSON.parse(localStorage.getItem("ps-choo-choo.snapshot")),
+  );
+  assert.equal(recovered.version, 2);
+  assert.ok(recovered.state.boiler.mass < overfilled.boiler.mass);
+  assert.equal(recovered.state.controls.blowdown, false);
+  await drain.focus();
+  await recovery.keyboard.down("Space");
+  assert.equal(await drain.getAttribute("aria-pressed"), "true");
+  await recovery.keyboard.up("Space");
+  assert.equal(await drain.getAttribute("aria-pressed"), "false");
+  await recovery.keyboard.down("Enter");
+  assert.equal(await drain.getAttribute("aria-pressed"), "true");
+  await recovery.keyboard.up("Enter");
+  assert.equal(await drain.getAttribute("aria-pressed"), "false");
+  await drain.hover();
+  await recovery.mouse.down();
+  await drain.dispatchEvent("pointercancel");
+  assert.equal(await drain.getAttribute("aria-pressed"), "false");
+  await recovery.mouse.up();
+  await drain.focus();
+  await recovery.keyboard.down("Space");
+  await recovery.locator("#tab-cab").focus();
+  assert.equal(await drain.getAttribute("aria-pressed"), "false");
+  await recovery.keyboard.up("Space");
+  await drain.focus();
+  await recovery.keyboard.down("Space");
+  await recovery.evaluate(() => window.dispatchEvent(new Event("blur")));
+  assert.equal(await drain.getAttribute("aria-pressed"), "false");
+  await recovery.keyboard.up("Space");
+  await recovery.locator("#run").click();
+  await drain.focus();
+  await recovery.keyboard.down("Space");
+  await recovery.evaluate(() => document.getElementById("run").click());
+  assert.equal(await recovery.locator("#run").getAttribute("aria-pressed"), "true");
+  assert.equal(await drain.getAttribute("aria-pressed"), "false");
+  await recovery.keyboard.up("Space");
+  await recovery.locator("#run").click();
+  await drain.focus();
+  await recovery.keyboard.down("Enter");
+  await recovery.evaluate(() => {
+    Object.defineProperty(document, "hidden", { configurable: true, get: () => true });
+    document.dispatchEvent(new Event("visibilitychange"));
+    delete document.hidden;
+  });
+  assert.equal(await recovery.locator("#run").getAttribute("aria-pressed"), "true");
+  assert.equal(await drain.getAttribute("aria-pressed"), "false");
+  await recovery.keyboard.up("Enter");
+  await drain.focus();
+  await recovery.keyboard.down("Space");
+  await recovery.reload();
+  await recovery.keyboard.up("Space");
+  assert.equal(await recovery.locator("#blowdown").getAttribute("aria-pressed"), "false");
+  assert.equal(await recovery.locator("#run").getAttribute("aria-pressed"), "true");
+  await recovery.close();
   assert.deepEqual(errors, []);
   assert.deepEqual(missing, []);
   console.log(
-    "Browser smoke passed: native ESM, playback speeds and toggle states, management, controls, hold-to-vent, configuration locks, persistence, hidden pause, reset, mobile layout, accelerated critical-error rollback, corrupt storage.",
+    "Browser smoke passed: native ESM, playback speeds and toggle states, management, controls, hold-to-vent, liquid blowdown and overfill recovery, held-valve release, legacy-save migration, configuration locks, persistence, hidden pause, reset, mobile layout, accelerated critical-error rollback, corrupt storage.",
   );
   console.log("Screenshots: /tmp/ps-choo-choo-desktop.png and /tmp/ps-choo-choo-mobile.png");
 } finally {

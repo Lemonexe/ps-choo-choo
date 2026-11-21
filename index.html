@@ -198,7 +198,17 @@
                 <span>Sand the rails</span>
                 <input id="sand" type="checkbox" role="switch" />
               </label>
-              <button class="button vent" id="vent">Hold to release steam</button>
+              <button class="button vent" id="vent" aria-pressed="false">
+                Hold to release steam
+              </button>
+              <button
+                class="button vent"
+                id="blowdown"
+                aria-pressed="false"
+                title="Drain pressurized liquid water from the boiler to atmosphere"
+              >
+                Hold to drain water (blowdown)
+              </button>
             </div>
           </aside>
         </div>

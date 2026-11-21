@@ -63,6 +63,8 @@ in displays. Every mass stream carries enthalpy; heat/work are separate transfer
 - Relief: phase-aware adiabatic blowdown to set pressure, accounting mass and
   discharge enthalpy; vapor takeoff when liquid remains, homogeneous discharge
   in single-phase states; no valve capacity dynamics. Manual vent has finite flow.
+  Hold-to-drain bottom blowdown withdraws liquid through a finite equilibrium nozzle,
+  conserving mass and liquid enthalpy and allowing recovery from overfilling.
 - Motion: Davis A+B|v|+Cv², grade gravity, adhesion-limited train brakes. No wheel
   rotation state. Solve slip wheel-equivalent speed where engine force meets
   adhesion; loss is adhesion force times slip speed. Sand raises adhesion.
