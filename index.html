@@ -24,13 +24,42 @@
         <span>choo choo<small>A STEAM LOCOMOTIVE LABORATORY</small> </span>
       </a>
       <div class="session">
-        <span id="state-light" class="state-light"> </span>
-        <span id="run-state">PAUSED</span>
-        <span class="divider"> </span>
         <span id="clock">00:00.00</span>
-        <button id="run" class="button primary">
-          Run simulation <span aria-hidden="true">▶</span>
-        </button>
+        <div class="transport-controls" role="group" aria-label="Simulation playback">
+          <button
+            id="run"
+            class="button transport"
+            aria-label="Resume simulation"
+            title="Resume simulation"
+            aria-pressed="true"
+          >
+            <span aria-hidden="true">▶</span>
+          </button>
+          <button
+            class="button transport"
+            data-speed="2"
+            aria-label="2× simulation speed"
+            aria-pressed="false"
+          >
+            ×2
+          </button>
+          <button
+            class="button transport"
+            data-speed="4"
+            aria-label="4× simulation speed"
+            aria-pressed="false"
+          >
+            ×4
+          </button>
+          <button
+            class="button transport"
+            data-speed="8"
+            aria-label="8× simulation speed"
+            aria-pressed="false"
+          >
+            ×8
+          </button>
+        </div>
         <button id="single-step" class="button compact" title="Advance one 20 ms step">Step</button>
       </div>
     </header>

@@ -32,8 +32,11 @@ try {
   const base = `http://127.0.0.1:${server.address().port}`;
   await page.goto(base);
   await page.locator("#phase-label").waitFor();
-  assert.equal(await page.locator("#run-state").textContent(), "PAUSED");
+  assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "true");
   assert.equal(await page.locator("#clock").textContent(), "00:00.00");
+  assert.equal(await page.locator("#run").getAttribute("aria-label"), "Resume simulation");
+  assert.equal(await page.locator("#run span").textContent(), "▶");
+  assert.equal(await page.locator("#run-state").count(), 0);
   await page.getByRole("tab", { name: "Management", exact: true }).click();
   await page.locator("[data-manage=fire]").click();
   await page.locator("[data-manage=boiler]").click();
@@ -55,7 +58,9 @@ try {
   await slider("stoker", 40);
   await page.locator("#run").click();
   await page.waitForFunction(() => document.getElementById("clock").textContent !== "00:00.00");
-  assert.equal(await page.locator("#run-state").textContent(), "RUNNING");
+  assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "false");
+  assert.equal(await page.locator("#run").getAttribute("aria-label"), "Pause simulation");
+  assert.equal(await page.locator("#run span").textContent(), "Ⅱ");
   await page.locator("#vent").hover();
   await page.mouse.down();
   assert.equal(await page.locator("#vent").evaluate((el) => el.classList.contains("held")), true);
@@ -74,7 +79,7 @@ try {
   assert.equal(saved.state.specs.condenser, true);
   await page.screenshot({ path: "/tmp/ps-choo-choo-desktop.png", fullPage: true });
   await page.reload();
-  assert.equal(await page.locator("#run-state").textContent(), "PAUSED");
+  assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "true");
   assert.equal(await page.locator("#throttle").inputValue(), "25");
   assert.equal(await page.locator("#automatic-firing").isVisible(), true);
   await page.locator("#run").click();
@@ -82,7 +87,7 @@ try {
     Object.defineProperty(document, "hidden", { configurable: true, get: () => true });
     document.dispatchEvent(new Event("visibilitychange"));
   });
-  assert.equal(await page.locator("#run-state").textContent(), "PAUSED");
+  assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "true");
   await page.evaluate(() => {
     delete document.hidden;
   });
@@ -96,13 +101,16 @@ try {
     /DRG_Class_01/,
   );
   await page.getByRole("tab", { name: "Settings", exact: true }).click();
+  await page.locator('[data-speed="4"]').click();
   await page.locator("#reset").click();
   await page.locator("#reset-cancel").click();
   assert.equal(await page.locator("#throttle").inputValue(), "25");
+  assert.equal(await page.locator('[data-speed="4"]').getAttribute("aria-pressed"), "true");
   await page.locator("#reset").click();
   await page.locator("#reset-confirm").click();
   assert.equal(await page.locator("#clock").textContent(), "00:00.00");
   assert.equal(await page.locator("#throttle").inputValue(), "0");
+  assert.equal(await page.locator('[data-speed][aria-pressed="true"]').count(), 0);
   await page.getByRole("tab", { name: "Driving cab", exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator("#toast").evaluate((el) => {
@@ -126,9 +134,11 @@ try {
     return s.boiler.energy;
   });
   await page.reload();
-  await page.locator("#single-step").click();
+  await page.locator('[data-speed="8"]').click();
+  await page.locator("#run").click();
+  await page.locator("#error-modal").waitFor();
   assert.equal(await page.locator("#error-modal").evaluate((el) => el.open), true);
-  assert.equal(await page.locator("#run-state").textContent(), "PAUSED");
+  assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "true");
   assert.equal(await page.locator("#clock").textContent(), "00:00.00");
   assert.equal(
     await page.evaluate(
@@ -141,11 +151,60 @@ try {
   await page.reload();
   assert.equal(await page.locator("#error-modal").evaluate((el) => el.open), true);
   assert.match(await page.locator("#error-message").textContent(), /Could not restore/);
-  assert.equal(await page.locator("#run-state").textContent(), "PAUSED");
+  assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "true");
+  // Drive individual scheduling callbacks deterministically, avoiding wall-clock
+  // timing assumptions while verifying real fixed-step physics at each speed.
+  const playback = await browser.newPage();
+  playback.on("pageerror", (error) => errors.push(error.message));
+  await playback.addInitScript(() => {
+    const interval = window.setInterval.bind(window);
+    window.setInterval = (callback, delay, ...args) => {
+      if (delay === 20 && typeof callback === "function") {
+        window.testSimulationTick = () => callback(...args);
+        return 0;
+      }
+      return interval(callback, delay, ...args);
+    };
+  });
+  await playback.goto(base);
+  await playback.waitForFunction(() => typeof window.testSimulationTick === "function");
+  const tick = async (expected) => {
+    await playback.evaluate(() => window.testSimulationTick());
+    await playback.waitForFunction(
+      (text) => document.getElementById("clock").textContent === text,
+      expected,
+    );
+  };
+  await playback.locator('[data-speed="2"]').click();
+  assert.equal(await playback.locator('[data-speed="2"]').getAttribute("aria-pressed"), "true");
+  await tick("00:00.00"); // Selecting a speed does not resume a paused locomotive.
+  await playback.locator("#run").click();
+  await tick("00:00.04");
+  await playback.locator('[data-speed="4"]').click();
+  assert.equal(await playback.locator('[data-speed][aria-pressed="true"]').count(), 1);
+  assert.equal(await playback.locator('[data-speed="2"]').getAttribute("aria-pressed"), "false");
+  await tick("00:00.12");
+  await playback.locator('[data-speed="8"]').click();
+  await tick("00:00.28");
+  await playback.locator('[data-speed="8"]').click();
+  assert.equal(await playback.locator('[data-speed][aria-pressed="true"]').count(), 0);
+  await tick("00:00.30"); // Clicking the active button restores 1×.
+  await playback.locator('[data-speed="4"]').click();
+  await playback.locator("#run").click();
+  await tick("00:00.30");
+  await playback.locator("#single-step").click();
+  await playback.waitForFunction(() => document.getElementById("clock").textContent === "00:00.32");
+  await playback.locator("#run").click();
+  await tick("00:00.40"); // Pause/resume preserves the selected speed.
+  await playback.locator("#run").click();
+  await playback.reload();
+  assert.equal(await playback.locator("#run").getAttribute("aria-pressed"), "true");
+  assert.equal(await playback.locator('[data-speed][aria-pressed="true"]').count(), 0);
+  await playback.close();
   assert.deepEqual(errors, []);
   assert.deepEqual(missing, []);
   console.log(
-    "Browser smoke passed: native ESM, management, controls, hold-to-vent, configuration locks, persistence, hidden pause, reset, mobile layout, critical-error rollback, corrupt storage.",
+    "Browser smoke passed: native ESM, playback speeds and toggle states, management, controls, hold-to-vent, configuration locks, persistence, hidden pause, reset, mobile layout, accelerated critical-error rollback, corrupt storage.",
   );
   console.log("Screenshots: /tmp/ps-choo-choo-desktop.png and /tmp/ps-choo-choo-mobile.png");
 } finally {

@@ -22,6 +22,7 @@ let state = initialState(),
   diagnostics = inspect(state),
   running = false,
   dirty = true;
+let playbackSpeed = 1;
 let lastSave = 0,
   toastTimer = 0;
 const canvas = element<HTMLCanvasElement>("schematic");
@@ -50,11 +51,12 @@ function save(): void {
 function setRunning(value: boolean): void {
   running = value;
   if (!running) state = { ...state, controls: { ...state.controls, vent: false } };
-  element("state-light").classList.toggle("running", running);
-  setText("run-state", running ? "RUNNING" : "PAUSED");
-  element("run").innerHTML = running
-    ? 'Pause simulation <span aria-hidden="true">Ⅱ</span>'
-    : 'Run simulation <span aria-hidden="true">▶</span>';
+  const button = element<HTMLButtonElement>("run");
+  const label = running ? "Pause simulation" : "Resume simulation";
+  button.setAttribute("aria-label", label);
+  button.title = label;
+  button.setAttribute("aria-pressed", String(!running));
+  button.innerHTML = `<span aria-hidden="true">${running ? "Ⅱ" : "▶"}</span>`;
   element<HTMLButtonElement>("single-step").disabled = running;
   sync();
   dirty = true;
@@ -347,6 +349,18 @@ for (const button of document.querySelectorAll<HTMLButtonElement>("[data-manage]
 element("run").addEventListener("click", () => {
   if (!element<HTMLDialogElement>("error-modal").open) setRunning(!running);
 });
+const speedButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-speed]")];
+function setPlaybackSpeed(speed: number): void {
+  playbackSpeed = speed;
+  for (const button of speedButtons)
+    button.setAttribute("aria-pressed", String(Number(button.dataset.speed) === playbackSpeed));
+}
+for (const button of speedButtons) {
+  button.addEventListener("click", () => {
+    const speed = Number(button.dataset.speed);
+    setPlaybackSpeed(playbackSpeed === speed ? 1 : speed);
+  });
+}
 element("single-step").addEventListener("click", () => {
   if (!running) {
     advance();
@@ -366,6 +380,7 @@ element("reset-cancel").addEventListener("click", () =>
   element<HTMLDialogElement>("reset-modal").close(),
 );
 element("reset-confirm").addEventListener("click", () => {
+  setPlaybackSpeed(1);
   state = initialState();
   diagnostics = inspect(state);
   setRunning(false);
@@ -395,7 +410,8 @@ try {
 sync();
 setInterval(() => {
   if (!running || document.hidden) return;
-  advance();
+  // Always integrate at DT; stop the batch immediately on a failed step/pause.
+  for (let i = 0; i < playbackSpeed && running; i++) advance();
   if (performance.now() - lastSave > 1000) save();
 }, DT * 1000);
 function frame(): void {

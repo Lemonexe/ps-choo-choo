@@ -39,6 +39,11 @@ review its output. Build and test commands do not require PMG.
 5. Feed water before the boiler level reaches the tubes. The ideal steam-driven
    pump works while stationary once sufficient pressure is available.
 
+Use the play/pause button to resume or pause, and ×2, ×4, or ×8 to select playback
+speed. Clicking the selected speed returns to 1×. Speed selection does not resume
+a paused simulation and is retained across pause/resume; reload and reset return
+to 1×. Acceleration runs more fixed 20 ms steps, without enlarging the physics timestep.
+
 Start/restore is always paused. Hidden tabs pause automatically. The manual steam
 release operates only while its button is held; release, lost capture, loss of
 focus, pause, and reload clear it. State is saved on this device, not uploaded.

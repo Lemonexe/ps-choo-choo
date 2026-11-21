@@ -50,8 +50,9 @@ own `mechanicalResidual` diagnostic and decreases with timestep refinement.
 The 20 ms scenarios averaged approximately 7.3 ms per tick for acceleration,
 10.9 ms for slipping/condenser, and 0.9 ms for venting/relief on this host. These
 are scenario averages, not worst-case latency promises. Extreme states and slower
-devices can run below wall-clock speed: the timer advances one fixed 20 ms step
-per invocation and never substitutes a large elapsed-time Euler step.
+devices can run below wall-clock speed: each timer invocation advances 1, 2, 4,
+or 8 fixed 20 ms steps according to playback speed, and never substitutes a large
+elapsed-time Euler step. A failure stops an accelerated batch immediately.
 
 **20 ms is retained as the default.** This demonstrates convergence for these
 representative scenarios, not universal stability for every possible sandbox
@@ -68,6 +69,8 @@ finished without a solver failure. It took about 25 seconds wall time on this ho
 
 - All native ESM modules load without a bundler or runtime CDN requests.
 - Preheat, supplies, manual/automatic firing selection, throttle and brake.
+- Play/pause icons and pressed states; ×2/×4/×8 step counts, mutually exclusive
+  speed selection, active-speed toggle back to 1×, and single-step while paused.
 - Held manual vent and pointer release.
 - Paused-only specification/management controls.
 - Saved controls/specifications and paused reload.

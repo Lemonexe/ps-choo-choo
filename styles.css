@@ -101,20 +101,9 @@ a {
   font-size: 10px;
   letter-spacing: 1.2px;
 }
-.state-light {
-  width: 6px;
-  height: 6px;
-  background: #b5a16d;
-  border-radius: 50%;
-  box-shadow: 0 0 0 4px #b5a16d13;
-}
-.state-light.running {
-  background: #9bc5a5;
-}
-.divider {
-  height: 18px;
-  width: 1px;
-  background: #36504d;
+.transport-controls {
+  display: flex;
+  gap: 6px;
 }
 #clock {
   font-variant-numeric: tabular-nums;
@@ -155,6 +144,25 @@ a {
   padding: 9px 11px;
   color: #d5ddd2;
   border-color: #49605a;
+}
+.button.transport {
+  min-width: 42px;
+  padding: 9px;
+  color: #d5ddd2;
+  border-color: #49605a;
+}
+.button.transport:hover {
+  background: #29413b;
+  border-color: #91a391;
+}
+.button.transport[aria-pressed="true"] {
+  color: #182e28;
+  background: #d4b880;
+  border-color: #d4b880;
+  box-shadow: inset 0 2px 3px #182e2826;
+}
+.button.transport[aria-pressed="true"]:hover {
+  background: #e4ca98;
 }
 .button.full {
   width: 100%;
@@ -813,10 +821,17 @@ dialog .button {
   .session {
     width: 100%;
     justify-content: flex-end;
-    gap: 12px;
+    gap: 8px;
   }
-  .session .state-light {
+  .session #clock {
     margin-right: auto;
+  }
+  .transport-controls {
+    gap: 4px;
+  }
+  .button.transport {
+    min-width: 36px;
+    padding: 8px;
   }
   main {
     padding: 0 5%;
