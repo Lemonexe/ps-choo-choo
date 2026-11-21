@@ -8,10 +8,9 @@ import {
   addCoal,
   storedMass,
   storedEnergy,
-  boilerWater,
 } from "../dist/physics/simulation.js";
 import { DESIGN } from "../dist/physics/types.js";
-import { ATM, pt, flash, waterLevel } from "../dist/physics/thermo.js";
+import { ATM, pt } from "../dist/physics/thermo.js";
 import { filledBoiler } from "../dist/physics/boiler.js";
 import { thermalEnergy } from "../dist/physics/heat.js";
 import { decode, encode } from "../dist/persistence.js";

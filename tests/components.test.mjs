@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { cylinder, engine, engineContext, traction } from "../dist/physics/cylinder.js";
 import { expandToVolume, hydraulicPump, nozzle, superheat } from "../dist/physics/flow.js";
-import { ATM, pt, ph, ps, saturation, boilingPoint, flash } from "../dist/physics/thermo.js";
+import { ATM, pt, ph, saturation, flash } from "../dist/physics/thermo.js";
 import {
   gasExchanger,
   gasEnthalpy,
