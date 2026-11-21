@@ -42,9 +42,9 @@ function toast(message: string): void {
 function save(): void {
   try {
     localStorage.setItem(STORAGE_KEY, encode(state));
-    setText("save-status", "Saved on this device");
+    setText("save-status", "Your data: Saved on this device");
   } catch {
-    setText("save-status", "Storage unavailable · session only");
+    setText("save-status", "Your data: Storage unavailable · session only");
   }
   lastSave = performance.now();
 }
@@ -55,7 +55,7 @@ function setRunning(value: boolean): void {
   const label = running ? "Pause simulation" : "Resume simulation";
   button.setAttribute("aria-label", label);
   button.title = label;
-  button.setAttribute("aria-pressed", String(!running));
+  button.setAttribute("aria-pressed", String(running));
   button.innerHTML = `<span aria-hidden="true">${running ? "Ⅱ" : "▶"}</span>`;
   sync();
   dirty = true;
@@ -147,10 +147,6 @@ function render(): void {
       : `${(diagnostics.efficiency * 100).toFixed(1)} <small>%</small>`;
   element("stat-enthalpy").innerHTML =
     `${(diagnostics.enthalpy / 1e9).toFixed(2)} <small>GJ</small>`;
-  setText(
-    "stat-mass",
-    `${((state.boiler.mass + state.tank.mass) / 1000).toFixed(1)} t of water + steam`,
-  );
   setText("flow-steam", `${diagnostics.steamRate.toFixed(2)} kg/s`);
   setText("flow-coal", `${diagnostics.burnRate.toFixed(2)} kg/s`);
   setText("flow-feed", `${diagnostics.feedRate.toFixed(2)} kg/s`);
@@ -224,7 +220,6 @@ for (const id of ["throttle", "reverser", "stoker", "pump", "brake"] as const) {
       Math.abs(state.speed) > 0.05 &&
       Math.sign(value) !== Math.sign(state.speed)
     ) {
-      toast("Bring the train to a standstill before changing direction.");
       sync();
       return;
     }
@@ -401,10 +396,10 @@ try {
   if (raw) {
     state = decode(raw);
     diagnostics = inspect(state);
-    setText("save-status", "Restored · paused");
+    setText("save-status", "Your data: Restored from saved · paused");
   }
 } catch (error) {
-  setText("save-status", "Saved snapshot unavailable");
+  setText("save-status", "Your data: Saved snapshot unavailable");
   setText(
     "error-message",
     `Could not restore the saved snapshot. A fresh paused locomotive is available. ${error instanceof Error ? error.message : ""}`,

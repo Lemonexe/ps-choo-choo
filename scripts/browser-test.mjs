@@ -5,6 +5,7 @@ import { serve } from "./serve.mjs";
 import { initialState } from "../dist/physics/simulation.js";
 import { pt } from "../dist/physics/thermo.js";
 import { DESIGN } from "../dist/physics/types.js";
+import { encode } from "../dist/persistence.js";
 
 const server = serve(0);
 if (!server.listening) await once(server, "listening");
@@ -34,8 +35,42 @@ try {
   });
   const base = `http://127.0.0.1:${server.address().port}`;
   await page.goto(base);
+  assert.equal(
+    await page
+      .getByRole("tab")
+      .first()
+      .textContent()
+      .then((text) => text.trim()),
+    "Getting started",
+  );
+  assert.equal(await page.locator("#panel-start").isVisible(), true);
+  assert.equal(await page.locator("#panel-cab").isVisible(), false);
+  assert.match(await page.locator("#panel-start h1").textContent(), /A little coal/);
+  assert.equal(
+    await page.locator("#run").evaluate((el) => getComputedStyle(el).backgroundColor),
+    "rgba(0, 0, 0, 0)",
+  );
+  assert.ok((await page.locator(".masthead").boundingBox()).height <= 72);
+  await page.getByRole("tab", { name: "Getting started", exact: true }).focus();
+  await page.keyboard.press("ArrowRight");
   await page.locator("#phase-label").waitFor();
-  assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "true");
+  assert.equal(await page.locator("#panel-start").isVisible(), false);
+  assert.equal(await page.locator("main > .stats").count(), 0);
+  assert.equal(await page.locator("#stat-mass").count(), 0);
+  assert.equal(await page.locator(".train-stats .stat").count(), 4);
+  assert.equal(await page.locator(".train-stats #stat-speed").count(), 1);
+  const primary = await page.locator(".train-stats").boundingBox();
+  const secondary = await page.locator(".flow-stats:not(.train-stats)").boundingBox();
+  const diagram = await page.locator("#schematic").boundingBox();
+  assert.ok(primary.y >= diagram.y + diagram.height && secondary.y >= primary.y + primary.height);
+  assert.ok(
+    await page.evaluate(
+      () =>
+        parseFloat(getComputedStyle(document.getElementById("stat-speed")).fontSize) >
+        parseFloat(getComputedStyle(document.getElementById("flow-steam")).fontSize),
+    ),
+  );
+  assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "false");
   assert.equal(await page.locator("#clock").textContent(), "🕒 00:00");
   assert.equal(await page.locator("#run").getAttribute("aria-label"), "Resume simulation");
   assert.equal(await page.locator("#run span").textContent(), "▶");
@@ -61,7 +96,7 @@ try {
   await slider("stoker", 40);
   await page.locator("#run").click();
   await page.waitForFunction(() => document.getElementById("clock").textContent !== "🕒 00:00");
-  assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "false");
+  assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "true");
   assert.equal(await page.locator("#run").getAttribute("aria-label"), "Pause simulation");
   assert.equal(await page.locator("#run span").textContent(), "Ⅱ");
   await page.locator("#vent").hover();
@@ -75,6 +110,10 @@ try {
   assert.equal(await page.locator("[data-manage=fire]").isDisabled(), true);
   await page.getByRole("tab", { name: "Driving cab", exact: true }).click();
   await page.locator("#run").click();
+  assert.equal(
+    await page.locator("#run").evaluate((el) => getComputedStyle(el).backgroundColor),
+    "rgba(0, 0, 0, 0)",
+  );
   const saved = await page.evaluate(() =>
     JSON.parse(localStorage.getItem("ps-choo-choo.snapshot")),
   );
@@ -82,7 +121,8 @@ try {
   assert.equal(saved.state.specs.condenser, true);
   await page.screenshot({ path: "/tmp/ps-choo-choo-desktop.png", fullPage: true });
   await page.reload();
-  assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "true");
+  await page.getByRole("tab", { name: "Driving cab", exact: true }).click();
+  assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "false");
   assert.equal(await page.locator("#throttle").inputValue(), "25");
   assert.equal(await page.locator("#automatic-firing").isVisible(), true);
   await page.locator("#run").click();
@@ -90,7 +130,7 @@ try {
     Object.defineProperty(document, "hidden", { configurable: true, get: () => true });
     document.dispatchEvent(new Event("visibilitychange"));
   });
-  assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "true");
+  assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "false");
   await page.evaluate(() => {
     delete document.hidden;
   });
@@ -140,7 +180,7 @@ try {
   await page.locator('[data-speed="8"]').click();
   await page.locator("#error-modal").waitFor();
   assert.equal(await page.locator("#error-modal").evaluate((el) => el.open), true);
-  assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "true");
+  assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "false");
   assert.equal(await page.locator("#clock").textContent(), "🕒 00:00");
   assert.equal(
     await page.evaluate(
@@ -153,7 +193,7 @@ try {
   await page.reload();
   assert.equal(await page.locator("#error-modal").evaluate((el) => el.open), true);
   assert.match(await page.locator("#error-message").textContent(), /Could not restore/);
-  assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "true");
+  assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "false");
   // Drive individual scheduling callbacks deterministically, avoiding wall-clock
   // timing assumptions while verifying real fixed-step physics at each speed.
   const playback = await browser.newPage();
@@ -186,7 +226,7 @@ try {
   await tick(50, "🕒 00:01");
   await playback.locator('[data-speed="2"]').click();
   assert.equal(await playback.locator('[data-speed="2"]').getAttribute("aria-pressed"), "true");
-  assert.equal(await playback.locator("#run").getAttribute("aria-pressed"), "false");
+  assert.equal(await playback.locator("#run").getAttribute("aria-pressed"), "true");
   await tick(25, "🕒 00:02"); // Turning on speed-up resumes a paused locomotive.
   await playback.locator('[data-speed="4"]').click();
   assert.equal(await playback.locator('[data-speed][aria-pressed="true"]').count(), 1);
@@ -196,14 +236,14 @@ try {
   await tick(50, "🕒 00:12"); // The same 50 callbacks advance eight simulated seconds at 8×.
   await playback.locator('[data-speed="8"]').click();
   assert.equal(await playback.locator('[data-speed][aria-pressed="true"]').count(), 0);
-  assert.equal(await playback.locator("#run").getAttribute("aria-pressed"), "false");
+  assert.equal(await playback.locator("#run").getAttribute("aria-pressed"), "true");
   await tick(50, "🕒 00:13"); // Disabling speed-up keeps a running simulation running.
   await playback.locator('[data-speed="4"]').click();
   await playback.locator("#run").click();
   await tick(50, "🕒 00:13");
   await playback.locator('[data-speed="4"]').click();
   assert.equal(await playback.locator('[data-speed][aria-pressed="true"]').count(), 0);
-  assert.equal(await playback.locator("#run").getAttribute("aria-pressed"), "true");
+  assert.equal(await playback.locator("#run").getAttribute("aria-pressed"), "false");
   await tick(50, "🕒 00:13"); // Disabling speed-up does not unpause.
   await playback.locator('[data-speed="8"]').click();
   await tick(25, "🕒 00:17");
@@ -213,9 +253,39 @@ try {
   await tick(25, "🕒 00:21"); // Pause/resume preserves the selected speed.
   await playback.locator("#run").click();
   await playback.reload();
-  assert.equal(await playback.locator("#run").getAttribute("aria-pressed"), "true");
+  assert.equal(await playback.locator("#run").getAttribute("aria-pressed"), "false");
   assert.equal(await playback.locator('[data-speed][aria-pressed="true"]').count(), 0);
   await playback.close();
+  // Opposite-direction inputs remain blocked in both directions, without toast
+  // or modal. Neutral is still available while moving.
+  for (const direction of [1, -1]) {
+    const moving = initialState();
+    moving.speed = direction * 5;
+    moving.controls.reverser = direction * 0.6;
+    const reverserPage = await browser.newPage();
+    reverserPage.on("pageerror", (error) => errors.push(error.message));
+    await reverserPage.addInitScript(
+      (raw) => localStorage.setItem("ps-choo-choo.snapshot", raw),
+      encode(moving),
+    );
+    await reverserPage.goto(base);
+    await reverserPage.getByRole("tab", { name: "Driving cab", exact: true }).click();
+    const changeGear = (value) =>
+      reverserPage.locator("#reverser").evaluate((input, value) => {
+        input.value = String(value);
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      }, value);
+    await changeGear(-direction * 80);
+    assert.equal(await reverserPage.locator("#reverser").inputValue(), String(direction * 60));
+    assert.equal(await reverserPage.locator("#toast").isVisible(), false);
+    assert.equal(await reverserPage.locator("#error-modal").evaluate((el) => el.open), false);
+    await changeGear(0);
+    assert.equal(await reverserPage.locator("#reverser").inputValue(), "0");
+    await changeGear(-direction * 80);
+    assert.equal(await reverserPage.locator("#reverser").inputValue(), "0");
+    assert.equal(await reverserPage.locator("#toast").isVisible(), false);
+    await reverserPage.close();
+  }
   // Load the original schema to reproduce an existing overfilled save, without
   // resetting its boiler. Recover through the real held liquid-drain control.
   const overfilled = initialState(),
@@ -244,6 +314,7 @@ try {
     JSON.stringify({ version: 1, state: legacy }),
   );
   await recovery.goto(base);
+  await recovery.getByRole("tab", { name: "Driving cab", exact: true }).click();
   assert.equal(await recovery.locator("#error-modal").evaluate((el) => el.open), false);
   assert.equal(await recovery.locator("#phase-label").textContent(), "Liquid-filled boiler");
   await recovery.locator("#run").click();
@@ -294,7 +365,7 @@ try {
   await drain.focus();
   await recovery.keyboard.down("Space");
   await recovery.evaluate(() => document.getElementById("run").click());
-  assert.equal(await recovery.locator("#run").getAttribute("aria-pressed"), "true");
+  assert.equal(await recovery.locator("#run").getAttribute("aria-pressed"), "false");
   assert.equal(await drain.getAttribute("aria-pressed"), "false");
   await recovery.keyboard.up("Space");
   await recovery.locator("#run").click();
@@ -305,7 +376,7 @@ try {
     document.dispatchEvent(new Event("visibilitychange"));
     delete document.hidden;
   });
-  assert.equal(await recovery.locator("#run").getAttribute("aria-pressed"), "true");
+  assert.equal(await recovery.locator("#run").getAttribute("aria-pressed"), "false");
   assert.equal(await drain.getAttribute("aria-pressed"), "false");
   await recovery.keyboard.up("Enter");
   await drain.focus();
@@ -313,7 +384,7 @@ try {
   await recovery.reload();
   await recovery.keyboard.up("Space");
   assert.equal(await recovery.locator("#blowdown").getAttribute("aria-pressed"), "false");
-  assert.equal(await recovery.locator("#run").getAttribute("aria-pressed"), "true");
+  assert.equal(await recovery.locator("#run").getAttribute("aria-pressed"), "false");
   await recovery.close();
   assert.deepEqual(errors, []);
   assert.deepEqual(missing, []);

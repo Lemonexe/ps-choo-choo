@@ -31,7 +31,7 @@
             class="button transport"
             aria-label="Resume simulation"
             title="Resume simulation"
-            aria-pressed="true"
+            aria-pressed="false"
           >
             <span aria-hidden="true">▶</span>
           </button>
@@ -63,41 +63,11 @@
       </div>
     </header>
     <main>
-      <div class="intro">
-        <div>
-          <p class="eyebrow">DRG CLASS 01 · EQUILIBRIUM STEAM MODEL</p>
-          <h1>A little coal. A lot of physics.</h1>
-          <p class="subtitle">Build pressure, find your cutoff, and put steam to work.</p>
-        </div>
-        <div class="reference-tag">
-          <span>01 118</span>
-          <small>PACIFIC · 2 CYLINDERS · 16 BAR</small>
-        </div>
-      </div>
-      <section class="stats" aria-label="Train statistics">
-        <div class="stat">
-          <span>SPEED</span>
-          <strong id="stat-speed">0.0 <small>km/h</small> </strong>
-          <div id="stat-direction">At standstill</div>
-        </div>
-        <div class="stat">
-          <span>INDICATED POWER</span>
-          <strong id="stat-power">0 <small>kW</small> </strong>
-          <div id="stat-traction">0 kW at the rail</div>
-        </div>
-        <div class="stat">
-          <span>CYCLE THERMAL EFFICIENCY</span>
-          <strong id="stat-efficiency">—</strong>
-          <div>Estimated · feed pump included</div>
-        </div>
-        <div class="stat">
-          <span>WATER + STEAM ENTHALPY</span>
-          <strong id="stat-enthalpy">0.00 <small>GJ</small> </strong>
-          <div id="stat-mass">Boiler + tender water</div>
-        </div>
-      </section>
       <nav class="tabs" role="tablist" aria-label="Workspace">
-        <button role="tab" id="tab-cab" aria-controls="panel-cab" aria-selected="true">
+        <button role="tab" id="tab-start" aria-controls="panel-start" aria-selected="true">
+          Getting started
+        </button>
+        <button role="tab" id="tab-cab" aria-controls="panel-cab" aria-selected="false">
           Driving cab
         </button>
         <button
@@ -119,7 +89,20 @@
         </button>
         <span class="save-indicator" id="save-status" role="status">Local snapshot</span>
       </nav>
-      <section id="panel-cab" role="tabpanel" aria-labelledby="tab-cab">
+      <section id="panel-start" role="tabpanel" aria-labelledby="tab-start">
+        <div class="intro">
+          <div>
+            <p class="eyebrow">DRG CLASS 01 · EQUILIBRIUM STEAM MODEL</p>
+            <h1>A little coal. A lot of physics.</h1>
+            <p class="subtitle">Build pressure, find your cutoff, and put steam to work.</p>
+          </div>
+          <div class="reference-tag">
+            <span>01 118</span>
+            <small>PACIFIC · 2 CYLINDERS · 16 BAR</small>
+          </div>
+        </div>
+      </section>
+      <section id="panel-cab" role="tabpanel" aria-labelledby="tab-cab" hidden>
         <div class="cab-grid">
           <div class="schematic-card">
             <div class="card-heading">
@@ -145,6 +128,27 @@
               <span id="phase-label">Equilibrium water + steam</span>
               <span>Pressures shown as gauge · temperatures in °C</span>
             </div>
+            <div class="flow-stats train-stats" aria-label="Train statistics">
+              <div class="stat">
+                <span>SPEED</span>
+                <strong id="stat-speed">0.0 <small>km/h</small> </strong>
+                <div id="stat-direction">At standstill</div>
+              </div>
+              <div class="stat">
+                <span>INDICATED POWER</span>
+                <strong id="stat-power">0 <small>kW</small> </strong>
+                <div id="stat-traction">0 kW at the rail</div>
+              </div>
+              <div class="stat">
+                <span>CYCLE THERMAL EFFICIENCY</span>
+                <strong id="stat-efficiency">—</strong>
+                <div>Estimated · feed pump included</div>
+              </div>
+              <div class="stat">
+                <span>WATER + STEAM ENTHALPY</span>
+                <strong id="stat-enthalpy">0.00 <small>GJ</small> </strong>
+              </div>
+            </div>
             <div class="flow-stats">
               <span>Steam <strong id="flow-steam">0.00 kg/s</strong> </span>
               <span>Coal <strong id="flow-coal">0.00 kg/s</strong> </span>
@@ -155,7 +159,6 @@
           <aside class="controls-card">
             <div class="card-heading">
               <h2>Driver’s controls</h2>
-              <span class="tiny-tag">LIVE</span>
             </div>
             <div class="control">
               <label for="throttle">Throttle <output id="throttle-value">0%</output> </label>
@@ -396,7 +399,10 @@
       </section>
       <footer>
         <span>pS choo choo <span class="footer-dot">·</span> An equilibrium steam sandbox</span>
-        <span>Inspired by 01 118 <span class="footer-dot">·</span> Saved on this device</span>
+        <span
+          >Source on <a href="https://github.com/Lemonexe/ps-choo-choo" target="_blank">Github</a>,
+          made with GPT-6.1 Sol.</span
+        >
       </footer>
     </main>
     <dialog id="error-modal" aria-labelledby="error-title">

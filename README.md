@@ -32,6 +32,11 @@ review its output. Build and test commands do not require PMG.
 
 ## Drive
 
+The first **Getting started** tab contains the introduction. Open **Driving cab**
+for the schematic and controls; train statistics appear directly below the circuit,
+above the steam, coal and feedwater readouts. Opposite-direction running gear is
+silently blocked while moving; neutral remains available.
+
 1. In **Management**, preheat the firebox and boiler while paused.
 2. In **Driving cab**, release the brake and open the throttle gradually.
 3. Use running gear for direction and admission cutoff. Sand improves adhesion.

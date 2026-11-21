@@ -100,7 +100,7 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
   label("WATER TENDER", 49, 220);
   text(`${(s.tank.mass / 1000).toFixed(2)} t`, 49, 250, 23, "#518899");
   const tankT = s.tank.mass > 0 ? s.tank.energy / s.tank.mass / 4200 : 0;
-  text(`~${tankT.toFixed(0)} °C`, 49, 273, 11);
+  text(`${tankT.toFixed(0)} °C`, 49, 273, 11);
   box(49, 292, 115, 6, "#e0ebdf", "#e0ebdf", 2);
   box(49, 292, Math.max(1, (115 * s.tank.mass) / 34000), 6, colors.water, colors.water, 2);
   // Supply lines and pump.
@@ -186,7 +186,7 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
   text(`${((d.boiler.p - ATM) / 1e5).toFixed(2)} bar`, 413, 243, 27, colors.ink);
   text(temp(d.boiler.T), 413, 267, 15, "#577e6f");
   text(
-    d.level === null ? "NO PHASE INTERFACE" : `WATER ${(d.level * 100).toFixed(0)}%`,
+    d.level === null ? "NO PHASE INTERFACE" : `WATER ${(d.level * 100).toFixed(1)}%`,
     700,
     270,
     11,

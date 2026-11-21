@@ -73,6 +73,10 @@ finished without a solver failure. It took about 25 seconds wall time on this ho
   speed selection that resumes the simulation, and active-speed toggle back to
   1× that preserves pause/run state. Whole-second elapsed simulation time advances
   8× as fast at 8× playback for the same number of timer callbacks.
+- Compact header and unfilled paused button; Getting started is the first tab,
+  introductory copy appears only there, and two ordered readout rows sit below
+  the schematic. Opposite-direction gear is silently rejected in both directions,
+  including after selecting neutral.
 - Held manual vent and pointer release.
 - Liquid blowdown restores admission from an overfilled version-1 save without
   resetting the boiler. Pointer/keyboard release, cancellation, focus loss, pause,
