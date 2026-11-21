@@ -16,6 +16,9 @@
     }
   },
   "scripts": {
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "lint": "oxlint",
     "build": "tsc",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.physics.json",
     "watch": "tsc --watch",
@@ -30,6 +33,8 @@
   },
   "devDependencies": {
     "@playwright/test": "1.65.1",
+    "oxfmt": "^0.79.0",
+    "oxlint": "^1.94.0",
     "typescript": "7.0.2"
   }
 }
