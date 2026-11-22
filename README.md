@@ -13,7 +13,7 @@ npm ci
 npm run dev
 ```
 
-Open **http://127.0.0.1:5173**. The development command compiles once, serves the
+Open **http://127.0.0.1:5176**. The development command compiles once, serves the
 app, then watches TypeScript. Refresh the browser after editing. Alternatively:
 
 ```sh

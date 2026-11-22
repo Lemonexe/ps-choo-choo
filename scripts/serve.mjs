@@ -14,7 +14,7 @@ const mime = {
   ".txt": "text/plain; charset=utf-8",
   ".svg": "image/svg+xml",
 };
-export function serve(port = Number(process.env.PORT || 5173), directory = root) {
+export function serve(port = Number(process.env.PORT || 5176), directory = root) {
   const servingRoot = resolve(directory);
   const server = createServer(async (req, res) => {
     try {
