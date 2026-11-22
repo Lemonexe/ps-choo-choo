@@ -199,11 +199,35 @@ Explicit estimates, **not measured historical specifications**:
 | Adhesive mass / clearance fraction                             | 60 t / 6% of swept volume |
 | Dry base mass, excluding retained water and coal               | 116.6 t                   |
 | Passenger / loaded freight carriage masses                     | 45 / 80 t                 |
-| Maximum burn / feed / stoker                                   | 1.2 / 12 / 2 kg/s         |
-| Main / manual vent effective areas; discharge coefficient      | 0.003 / 0.0003 m²; 0.78   |
+| Maximum burn / feed / stoker                                   | 1.2 / (250/60) / 2 kg/s   |
+| Main / manual vent effective areas; discharge coefficient      | 0.003 / 0.0015 m²; 0.78   |
 | Primary gas flow area / hydraulic diameter                     | 1.1 m² / 0.05 m           |
 | Superheater gas flow area / hydraulic diameter                 | 0.55 m² / 0.08 m          |
 | Ambient temperature                                            | 293.15 K                  |
 
 Equations, source references and empirical coefficients are exposed in small pure
 modules so alternatives can be tested without replacing the GUI.
+
+The hold-to-release steam valve is a sandbox fitting, not a documented Class 01
+valve. Its flow area is 0.0015 m² (five times the original estimate), equivalent
+to a circular opening about 44 mm in diameter before the 0.78 discharge factor.
+It uses the existing equilibrium nozzle model, so at a fixed inlet state its
+mass flow is five times the old value. It does not change automatic relief,
+liquid blowdown, or combustion draft. It is not a model of the locomotive's
+auxiliary blower. Opening a finite vent need not reduce pressure immediately:
+boiler heat input, feedwater and other steam withdrawals also affect pressure.
+
+The pump is rated at approximately 250 L/min of cold water, represented as
+250/60 kg/s at full control (1 kg/L density approximation). This replaces the
+original unsupported 12 kg/s estimate (about 720 L/min). Historical Reichsbahn
+maintenance instructions list a Knorr 250 L/min pump, including type code 33,
+and a Knorr–Tolkien 250 L/min pump under code 38:
+[DV 947/300, Appendix 17](https://printviewen.lokschuppen-wittenberge.de/content_leseecke_dv_fuer_unterhaltung_der_tfz_054).
+A contemporary account also describes a Knorr main-line locomotive feed pump
+at 250 L/min:
+[Polytechnisches Journal, 1915](https://dingler.bbaw.de/articles/ar330048.html).
+This is a period-equipment reference, **not verification of the exact pump fitted
+to 01 118**. The ideal auxiliary drive and linear control law remain simplified.
+At 1–2% control the old pump delivered 0.12–0.24 kg/s; such settings alone do not
+prove incorrect sizing because required feed depends on load, steam withdrawal,
+and changing equilibrium density/quality, rather than water level alone.

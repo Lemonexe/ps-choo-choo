@@ -64,7 +64,8 @@ test("steam-driven feed pump works while stationary and balances auxiliary exhau
   const r = step(s);
   balances(r);
   assert.equal(r.state.speed, 0);
-  assert.ok(r.diagnostics.feedRate > 0);
+  // Half control of the period 250 L/min reference pump, at cold-water density.
+  assert.ok(Math.abs(r.diagnostics.feedRate - 125 / 60) < 1e-9);
   assert.ok(r.diagnostics.pumpPower > 0);
   assert.ok(r.state.tank.mass < s.tank.mass);
 });
@@ -101,7 +102,9 @@ test("relief and manual release remove energy and mass without pressure clamping
   v.controls.vent = true;
   const released = step(v);
   balances(released);
-  assert.ok(released.state.boiler.mass < v.boiler.mass);
+  // Enlarged vent discharges about 2.84 kg/s of saturated steam at 16 bar gauge.
+  const ventRate = (v.boiler.mass - released.state.boiler.mass) / 0.02;
+  assert.ok(ventRate > 2.8 && ventRate < 2.9);
 });
 test("low water, wet superheater, cylinder condensation and slip produce alerts", () => {
   const s = hot();

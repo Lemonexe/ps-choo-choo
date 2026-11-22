@@ -199,7 +199,7 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
   text(`${((d.boiler.p - ATM) / 1e5).toFixed(2)} bar`, 413, 243, 27, colors.ink);
   text(temp(d.boiler.T), 413, 267, 15, "#577e6f");
   text(
-    d.level === null ? "NO PHASE INTERFACE" : `WATER ${(d.level * 100).toFixed(1)}%`,
+    d.level === null ? "NO PHASE INTERFACE" : `WATER ${(d.level * 100).toFixed(2)}%`,
     700,
     270,
     11,

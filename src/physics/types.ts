@@ -128,7 +128,8 @@ export const DESIGN = Object.freeze({
   superheaterCapacity: 1.2e6,
   lhv: 25.8e6,
   maxBurn: 1.2,
-  maxFeed: 12,
+  // Period Knorr 250 L/min reference; approximate cold-water density as 1 kg/L.
+  maxFeed: 250 / 60,
   maxStoker: 2,
   coalChunk: 20,
   maxFireCoal: 600,
@@ -137,7 +138,8 @@ export const DESIGN = Object.freeze({
   emissivity: 0.75,
   steamUA: 15000,
   valveArea: 0.003,
-  manualValveArea: 0.0003,
+  // Sandbox steam-release valve, not a measured Class 01 fitting.
+  manualValveArea: 0.0015,
   blowdownValveArea: 0.001,
   discharge: 0.78,
 });
