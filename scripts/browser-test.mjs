@@ -1,3 +1,4 @@
+import { testAudio } from "./browser-audio.mjs";
 import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 import { once } from "node:events";
@@ -428,6 +429,7 @@ try {
   assert.equal(await recovery.locator("#blowdown").getAttribute("aria-pressed"), "false");
   assert.equal(await recovery.locator("#run").getAttribute("aria-pressed"), "false");
   await recovery.close();
+  await testAudio(browser, base);
   assert.deepEqual(errors, []);
   assert.deepEqual(missing, []);
   console.log(

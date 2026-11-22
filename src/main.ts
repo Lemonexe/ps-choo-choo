@@ -1,3 +1,5 @@
+import { LocomotiveAudio } from "./audio.js";
+import { DEFAULT_SOUND, SOUND_STORAGE_KEY, soundPlan, soundPreferences } from "./sound-model.js";
 import { draw } from "./canvas.js";
 import { decode, encode, loadSnapshot, STORAGE_KEY } from "./persistence.js";
 import { cutoffPercent } from "./physics/cylinder.js";
@@ -30,6 +32,86 @@ const setText = (id: string, text: string): void => {
   const e = element(id);
   if (e.textContent !== text) e.textContent = text;
 };
+let sound = { ...DEFAULT_SOUND };
+try {
+  sound = soundPreferences(localStorage.getItem(SOUND_STORAGE_KEY));
+} catch {
+  /* Session-only audio preferences. */
+}
+let whistleHeld = false;
+function soundStatus(message: string, retry: boolean): void {
+  setText("sound-status", message);
+  element("sound-status").hidden = !message;
+  element("sound-retry").hidden = !retry;
+}
+const audio = new LocomotiveAudio(soundStatus);
+function updateSound(): void {
+  audio.update(
+    soundPlan(state, diagnostics, playbackSpeed, running, document.hidden, whistleHeld, sound),
+  );
+}
+function holdWhistle(held: boolean): void {
+  whistleHeld = held;
+  element("whistle").setAttribute("aria-pressed", String(held));
+  element("whistle").classList.toggle("held", held);
+  updateSound();
+}
+function syncSoundSettings(): void {
+  element<HTMLInputElement>("sound-enabled").checked = sound.enabled;
+  element<HTMLInputElement>("sound-volume").value = String(Math.round(sound.volume * 100));
+  setText("sound-volume-value", `${Math.round(sound.volume * 100)}%`);
+  element<HTMLButtonElement>("whistle").disabled = !sound.enabled || sound.volume === 0;
+}
+function saveSoundSettings(): void {
+  if (!sound.enabled || sound.volume === 0) holdWhistle(false);
+  try {
+    localStorage.setItem(SOUND_STORAGE_KEY, JSON.stringify(sound));
+  } catch {
+    soundStatus("Sound preferences apply to this session only.", false);
+  }
+  syncSoundSettings();
+  updateSound();
+  void audio.unlock(sound);
+}
+element("sound-enabled").addEventListener("change", () => {
+  sound.enabled = element<HTMLInputElement>("sound-enabled").checked;
+  saveSoundSettings();
+});
+element("sound-volume").addEventListener("input", () => {
+  sound.volume = Number(element<HTMLInputElement>("sound-volume").value) / 100;
+  saveSoundSettings();
+});
+element("sound-retry").addEventListener("click", () => void audio.unlock(sound));
+for (const event of ["pointerdown", "keydown"] as const)
+  document.addEventListener(
+    event,
+    () => {
+      void audio.unlock(sound);
+    },
+    { capture: true },
+  );
+const whistleButton = element<HTMLButtonElement>("whistle");
+whistleButton.addEventListener("pointerdown", (event) => {
+  if (event.button !== 0 || whistleButton.disabled) return;
+  whistleButton.setPointerCapture(event.pointerId);
+  holdWhistle(true);
+});
+for (const event of ["pointerup", "pointercancel", "lostpointercapture", "blur"] as const)
+  whistleButton.addEventListener(event, () => holdWhistle(false));
+whistleButton.addEventListener("keydown", (event) => {
+  if (event.key === " " || event.key === "Enter") {
+    event.preventDefault();
+    holdWhistle(true);
+  }
+});
+whistleButton.addEventListener("keyup", (event) => {
+  if (event.key === " " || event.key === "Enter") {
+    event.preventDefault();
+    holdWhistle(false);
+  }
+});
+syncSoundSettings();
+
 function toast(message: string): void {
   const e = element("toast");
   e.textContent = message;
@@ -59,6 +141,7 @@ function setRunning(value: boolean): void {
   button.innerHTML = `<span aria-hidden="true">${running ? "Ⅱ" : "▶"}</span>`;
   sync();
   dirty = true;
+  updateSound();
   if (!running) save();
 }
 function report(error: unknown): void {
@@ -275,13 +358,20 @@ function releaseValves(): void {
   holdValve("blowdown", false);
 }
 window.addEventListener("blur", () => {
+  holdWhistle(false);
   releaseValves();
   save();
 });
 document.addEventListener("visibilitychange", () => {
-  if (document.hidden) setRunning(false);
+  if (document.hidden) {
+    holdWhistle(false);
+    setRunning(false);
+  }
+  updateSound();
 });
 window.addEventListener("pagehide", () => {
+  holdWhistle(false);
+  audio.silence();
   releaseValves();
   save();
 });
@@ -455,6 +545,7 @@ setInterval(() => {
   if (performance.now() - lastSave > 1000) save();
 }, DT * 1000);
 function frame(): void {
+  updateSound();
   render();
   requestAnimationFrame(frame);
 }

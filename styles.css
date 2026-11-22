@@ -954,3 +954,13 @@ dialog .button {
     scroll-behavior: auto !important;
   }
 }
+
+.sound-settings {
+  max-width: 540px;
+}
+.sound-settings .control {
+  padding: 16px 0 0;
+}
+.sound-settings .switch-line {
+  margin-top: 18px;
+}

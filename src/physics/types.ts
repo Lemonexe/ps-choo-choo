@@ -83,6 +83,9 @@ export interface Diagnostics {
   tractionPower: number;
   slipPower: number;
   force: number;
+  /** Calculated driving-wheel rim speed, including slip (m/s). */
+  wheelSpeed: number;
+  manualVentRate: number;
   steamRate: number;
   burnRate: number;
   feedRate: number;

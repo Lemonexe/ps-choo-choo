@@ -6,7 +6,7 @@ are pinned in `package-lock.json`.
 
 ## Automated checks
 
-- **45 passing tests** through `npm test`, including the DOM-free physics build.
+- **52 passing tests** through `npm test`, including the DOM-free physics build.
 - Published IF97 forward cases for Regions 1, 2, 3 and 5; direct saturation cases
   for Region 4. Forward reference comparisons allow 2×10⁻⁷ relative discrepancy
   against rounded published values.
@@ -123,3 +123,15 @@ Relief uses frozen old-state vapor enthalpy in the dome, so large instantaneous
 setting changes have projection error even though their mass/energy balance closes.
 Cylinder early release, constant effective solid heat capacities and massless
 algebraic slipping are documented idealizations. See `model.md` for the equations.
+
+## Audio validation
+
+Pure sound-model tests cover accelerated cadence with unchanged tonal pitch,
+coasting versus slipping, moving brake gating, flow-based release, pressure-based
+whistle, global mute/hidden behavior, separate preference validation, and the new
+nonpersistent audio telemetry. Browser smoke checks exercise real Web Audio output
+through an analyser: lazy gesture startup, silent atmospheric whistle, audible
+pressurized whistle while paused without a physics change, pointer/key/blur release,
+fire audio, pause/mute/hidden silence, settings persistence across reset/import/reload,
+and graceful device failure with retry. No golden waveform or acoustic realism
+claim is made; procedural timbre is intentionally stylized.

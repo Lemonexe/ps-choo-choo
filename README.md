@@ -141,3 +141,9 @@ dynamics. It is an educational equilibrium sandbox, not a locomotive design tool
 The About tab links [Wikipedia](https://en.wikipedia.org/wiki/DRG_Class_01),
 [01 118 pictures](https://commons.wikimedia.org/wiki/Category:DRG_01_118), and the
 [owner’s specifications](https://www.historische-eisenbahn-frankfurt.de/wp-content/uploads/2016/07/01118.pdf).
+
+Sound is generated in the browser: exhaust, wheels, brakes, slip, steam release,
+firebox, and liquid blowdown. **Settings → Sound** enables it and sets volume;
+preferences are saved separately from locomotive snapshots. Hold **Whistle** in
+the cab for a pressure-sensitive steam whistle, including while paused. Faster
+simulation increases rhythmic cadence without shifting the sounds' tonal pitch.

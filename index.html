@@ -204,6 +204,14 @@
               <input id="brake" type="range" min="0" max="100" value="100" class="brake-range" />
             </div>
             <div class="aux-controls">
+              <button
+                class="button vent"
+                id="whistle"
+                aria-pressed="false"
+                title="Hold to whistle; loudness follows boiler pressure"
+              >
+                Hold to whistle
+              </button>
               <label class="switch-line" for="sand">
                 <span>Sand the rails</span>
                 <input id="sand" type="checkbox" role="switch" />
@@ -397,6 +405,24 @@
         </article>
       </section>
       <section id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" hidden>
+        <div class="section-intro sound-settings">
+          <p class="eyebrow">SOUND</p>
+          <h2>Hear the locomotive.</h2>
+          <div class="control">
+            <label class="switch-line" for="sound-enabled">
+              <span>Enable sounds</span>
+              <input id="sound-enabled" type="checkbox" role="switch" checked />
+            </label>
+          </div>
+          <div class="control">
+            <label for="sound-volume"
+              >Overall volume <output id="sound-volume-value">50%</output></label
+            >
+            <input id="sound-volume" type="range" min="0" max="100" value="50" />
+          </div>
+          <p id="sound-status" role="status" hidden></p>
+          <button id="sound-retry" class="button" hidden>Retry sound</button>
+        </div>
         <div class="section-intro">
           <p class="eyebrow">YOUR SIMULATION</p>
           <h2>Keep a snapshot.</h2>

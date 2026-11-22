@@ -231,3 +231,43 @@ to 01 118**. The ideal auxiliary drive and linear control law remain simplified.
 At 1–2% control the old pump delivered 0.12–0.24 kg/s; such settings alone do not
 prove incorrect sizing because required feed depends on load, steam withdrawal,
 and changing equilibrium density/quality, rather than water level alone.
+
+## Procedural locomotive audio
+
+Sound is presentation only (`sound-model.ts` / `audio.ts`); it changes no physics,
+steam inventory, or snapshot. The default is enabled at 50% volume. Independent
+localStorage preferences survive reset and snapshot import. Browsers require a
+user gesture to start Web Audio; device/autoplay failures show a retry option
+in Settings without interrupting the simulation.
+
+Four exhaust beats per driver revolution follow calculated rim speed, including
+slip. Strength follows steam mass per beat and boiler pressure, not power alone;
+cutoff broadens each beat. Unequal accents and filtered generated noise avoid
+identical chuffs. Rolling rumble and rail-joint doublets depend only on train
+speed. The rail-joint doublet uses a prominent synthesized resonant knock with
+a brief bass impact, inharmonic steel-like ringing, and tight stereo reflections,
+rather than a sustained drum-like bass tone or sharp noise click.
+Its pair spacing narrows with speed (capped at 160 ms for a close doublet), while
+repetition represents 12.5 m rail lengths. Speedup shortens envelopes and pair
+timing without resampling the sound or raising its resonances. Brake screech requires movement and brake application; wheel-slip screech follows
+lost slip power. Both drive the same distorted friction voice: inharmonic sawtooth
+partials, narrow-band grit, irregular pitch jitter, slow wobble and fast amplitude
+flutter. Their gains combine without switching to a whistle-like pure tone or a
+smooth broadband hiss. Tonal frequencies do not scale with simulation playback. Firebox rumble/crackle, combined actual manual/automatic release
+flow, and rougher liquid blowdown add distinct background layers. Condenser
+configuration never selects a different sound profile (actual simulation flow
+and load can still change when equipment configuration changes).
+
+At 2/4/8×, event cadence increases and envelopes shorten; noise playback rates,
+whistle harmonics, and filter pitch do not shift. Dense beats naturally overlap
+into a roar. No media time-stretch library, sampled recordings, external assets,
+or dependencies are used. The fixed nearby perspective has subtle stereo width,
+short gain fades, and a master compressor to contain overlap. UI audio scheduling
+uses browser audio time, independently of the fixed physics timestep.
+
+The held steam whistle works even while paused: pressure controls loudness and
+breathiness, capped at nominal boiler pressure, with fixed 440 Hz fundamental
+and quiet harmonics. It consumes no steam and ignores simulation playback speed.
+Pointer/key release, cancellation, lost focus, muting, and hiding release it.
+Pausing silences simulation layers; hiding silences everything. This is a
+stylized sound design, not an acoustic reconstruction of 01 118.
