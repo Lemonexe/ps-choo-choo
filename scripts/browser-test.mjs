@@ -131,6 +131,13 @@ try {
   await page.waitForFunction(() => !window.renderedPlumes.relief);
   await page.getByRole("tab", { name: "📝 Specifications", exact: true }).click();
   assert.equal(await page.locator("#condenser").isDisabled(), true);
+  for (const id of ["passenger", "freight"]) {
+    assert.equal(await page.locator(`#${id}`).isDisabled(), true);
+    assert.match(
+      await page.locator(`label[for="${id}"]`).textContent(),
+      /\(train must be stopped to modify\)/,
+    );
+  }
   await page.getByRole("tab", { name: "📈 Management", exact: true }).click();
   assert.equal(await page.locator("[data-manage=fire]").isDisabled(), true);
   await page.getByRole("tab", { name: "🚂 DRIVING CAB", exact: true }).click();

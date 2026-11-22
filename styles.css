@@ -1042,3 +1042,16 @@ dialog .button {
   pointer-events: none;
   user-select: none;
 }
+
+.number-control > .carriage-label {
+  white-space: normal;
+  color: inherit;
+  font-size: inherit;
+}
+.carriage-label small {
+  display: block;
+  margin-top: 4px;
+  color: #8a9481;
+  font-size: 10px;
+  line-height: 1.4;
+}

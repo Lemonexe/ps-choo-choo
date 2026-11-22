@@ -343,14 +343,18 @@
           <div class="form-card">
             <h3>Train & route</h3>
             <label class="number-control" for="passenger"
-              >Passenger carriages
+              ><span class="carriage-label"
+                >Passenger carriages <small>(train must be stopped to modify)</small></span
+              >
               <span>
                 <input id="passenger" type="number" min="0" max="100" step="1" value="4" /> × 45
                 t</span
               >
             </label>
             <label class="number-control" for="freight"
-              >Loaded freight carriages
+              ><span class="carriage-label"
+                >Loaded freight carriages <small>(train must be stopped to modify)</small></span
+              >
               <span>
                 <input id="freight" type="number" min="0" max="100" step="1" value="0" /> × 80
                 t</span
