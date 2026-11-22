@@ -1,5 +1,5 @@
 import { testAudio } from "./browser-audio.mjs";
-import { chromium } from "@playwright/test";
+import { chromium, expect } from "@playwright/test";
 import assert from "node:assert/strict";
 import { once } from "node:events";
 import { readFile } from "node:fs/promises";
@@ -160,13 +160,20 @@ try {
   });
   await page.getByRole("tab", { name: "🎓 About DRG Class 01", exact: true }).click();
   assert.match(
-    await page.locator('a[href*="commons.wikimedia.org"]').getAttribute("href"),
+    await page
+      .getByRole("link", { name: "Pictures on Wikimedia ↗", exact: true })
+      .getAttribute("href"),
     /DRG_01_118/,
   );
   assert.match(
     await page.locator('a[href*="en.wikipedia.org"]').getAttribute("href"),
     /DRG_Class_01/,
   );
+  const photo = page.getByRole("img", { name: "Steam locomotive 01 118 at Frankfurt-Höchst" });
+  await photo.scrollIntoViewIfNeeded();
+  await expect
+    .poll(() => photo.evaluate((image) => image.complete && image.naturalWidth > 0))
+    .toBe(true);
   await page.getByRole("tab", { name: "🔧 Settings", exact: true }).click();
   await page.screenshot({ path: "/tmp/ps-choo-choo-settings.png", fullPage: true });
   const downloading = page.waitForEvent("download");

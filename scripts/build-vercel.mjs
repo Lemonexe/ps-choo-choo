@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { copyFile, cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -31,6 +31,7 @@ export async function buildVercel(output = join(projectRoot, ".vercel/output")) 
   );
   for (const file of ["styles.css", "LICENSE", "THIRD_PARTY_NOTICES.md"])
     await copyFile(join(projectRoot, file), join(site, file));
+  await cp(join(projectRoot, "assets"), join(site, "assets"), { recursive: true });
   await copyModules(join(projectRoot, "dist"), join(site, "dist"));
   const dependency = "node_modules/iapws-if97";
   await copyModules(join(projectRoot, dependency, "dist"), join(site, dependency, "dist"));

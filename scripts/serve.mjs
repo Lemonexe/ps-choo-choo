@@ -10,6 +10,8 @@ const mime = {
   ".css": "text/css; charset=utf-8",
   ".json": "application/json",
   ".map": "application/json",
+  ".jpg": "image/jpeg",
+  ".txt": "text/plain; charset=utf-8",
   ".svg": "image/svg+xml",
 };
 export function serve(port = Number(process.env.PORT || 5173), directory = root) {
@@ -24,7 +26,7 @@ export function serve(port = Number(process.env.PORT || 5173), directory = root)
         relative.startsWith(".git/") ||
         !(
           pathname === "/" ||
-          /^(?:\/dist\/|\/node_modules\/iapws-if97\/dist\/|\/styles.css$|\/index.html$)/.test(
+          /^(?:\/dist\/|\/node_modules\/iapws-if97\/dist\/|\/assets\/|\/styles.css$|\/index.html$)/.test(
             pathname,
           )
         )
