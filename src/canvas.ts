@@ -23,6 +23,15 @@ const particles = Array.from({ length: 36 }, () => ({
   lifetime: 2 + Math.random() * 1.5,
 }));
 
+const wheelSparks = Array.from({ length: 3 }, () =>
+  Array.from({ length: 18 }, () => ({
+    offset: Math.random(),
+    angle: Math.random() * Math.PI * 2,
+    speed: 90 + Math.random() * 90,
+    lifetime: 0.18 + Math.random() * 0.2,
+  })),
+);
+
 export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void {
   const ratio = window.devicePixelRatio || 1,
     width = canvas.clientWidth;
@@ -419,6 +428,54 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
     false,
     4,
   );
+  if (d.slipPower > 100) {
+    c.save();
+    [445, 550, 655].forEach((wheel, index) => {
+      c.globalAlpha = 1;
+      c.fillStyle = "#f6c34a";
+      c.beginPath();
+      c.arc(wheel, 491, 1.8, 0, Math.PI * 2);
+      c.fill();
+      const count = Math.min(18, 6 + Math.floor(d.slipPower / 20000));
+      wheelSparks[index]!.slice(0, count).forEach((spark) => {
+        const age = (s.time / spark.lifetime + spark.offset) % 1;
+        const elapsed = age * spark.lifetime;
+        const vx = Math.cos(spark.angle) * spark.speed;
+        const vy = Math.sin(spark.angle) * spark.speed;
+        const x = wheel + vx * elapsed;
+        const y = 491 + vy * elapsed + 110 * elapsed * elapsed;
+        c.globalAlpha = Math.sqrt(1 - age);
+        c.strokeStyle = age < 0.4 ? "#f6c34a" : "#d9852f";
+        c.lineWidth = 1.4;
+        c.beginPath();
+        c.moveTo(x, y);
+        c.lineTo(x - vx * 0.018, y - (vy + 220 * elapsed) * 0.018);
+        c.stroke();
+      });
+    });
+    c.restore();
+  }
+
+  // Liquid leaves the boiler bottom beneath the relief stem. Keep this narrow
+  // jet in front of the running gear; opaque drops recycle only at ground level.
+  if (s.controls.blowdown && d.blowdownRate > 0) {
+    c.save();
+    c.beginPath();
+    c.rect(629, 330, 12, 163);
+    c.clip();
+    c.globalAlpha = 1;
+    c.fillStyle = "#659da9";
+    particles.forEach((particle, i) => {
+      const age = (s.time / 0.65 + i / particles.length) % 1;
+      const fall = 0.4 * age + 0.6 * age * age;
+      const x = 635 + particle.direction * 1.7 + Math.sin(age * 7 + particle.phase) * 0.4;
+      c.beginPath();
+      c.ellipse(x, 330 + 163 * fall, 1.3, 3 + age * 2, 0, 0, 2 * Math.PI);
+      c.fill();
+    });
+    c.restore();
+  }
+
   text(
     d.slipPower > 100
       ? `SLIP LOSS ${(d.slipPower / 1000).toFixed(0)} kW`

@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { once } from "node:events";
 import { readFile } from "node:fs/promises";
 import { serve } from "./serve.mjs";
-import { initialState } from "../dist/physics/simulation.js";
+import { initialState, manage } from "../dist/physics/simulation.js";
 import { pt } from "../dist/physics/thermo.js";
 import { DESIGN } from "../dist/physics/types.js";
 import { encode } from "../dist/persistence.js";
@@ -359,6 +359,19 @@ try {
   legacy.specs.slope = 0;
   const recovery = await browser.newPage();
   recovery.on("pageerror", (error) => errors.push(error.message));
+  await recovery.addInitScript(() => {
+    const clear = CanvasRenderingContext2D.prototype.clearRect;
+    const ellipse = CanvasRenderingContext2D.prototype.ellipse;
+    CanvasRenderingContext2D.prototype.clearRect = function (...args) {
+      if (this.canvas.id === "schematic") window.renderedLiquidJet = false;
+      return clear.apply(this, args);
+    };
+    CanvasRenderingContext2D.prototype.ellipse = function (x, y, ...args) {
+      if (this.canvas.id === "schematic" && x > 629 && x < 641 && y >= 330 && y <= 493)
+        window.renderedLiquidJet = true;
+      return ellipse.call(this, x, y, ...args);
+    };
+  });
   await recovery.addInitScript(
     (raw) => {
       if (!sessionStorage.getItem("blowdown-fixture-loaded")) {
@@ -372,6 +385,7 @@ try {
   await recovery.getByRole("tab", { name: "🚂 DRIVING CAB", exact: true }).click();
   assert.equal(await recovery.locator("#error-modal").evaluate((el) => el.open), false);
   assert.equal(await recovery.locator("#phase-label").textContent(), "Liquid-filled boiler!");
+  assert.equal(await recovery.evaluate(() => window.renderedLiquidJet), false);
   await recovery.locator("#run").click();
   await recovery.locator('[data-alert="liquid"]').waitFor();
   const drain = recovery.locator("#blowdown");
@@ -379,12 +393,15 @@ try {
   await recovery.mouse.down();
   assert.equal(await drain.getAttribute("aria-pressed"), "true");
   await recovery.locator('[data-alert="blowdown"]').waitFor();
+  await recovery.waitForFunction(() => window.renderedLiquidJet);
+  await recovery.screenshot({ path: "/tmp/ps-choo-choo-blowdown-jet.png", fullPage: true });
   await recovery.locator('[data-alert="liquid"]').waitFor({ state: "detached" });
   await recovery.waitForFunction(
     () => parseFloat(document.getElementById("stat-power").textContent) > 0,
   );
   await recovery.mouse.up();
   assert.equal(await drain.getAttribute("aria-pressed"), "false");
+  await recovery.waitForFunction(() => !window.renderedLiquidJet);
   await recovery.locator("#run").click();
   const recovered = await recovery.evaluate(() =>
     JSON.parse(localStorage.getItem("ps-choo-choo.snapshot")),
@@ -441,6 +458,39 @@ try {
   assert.equal(await recovery.locator("#blowdown").getAttribute("aria-pressed"), "false");
   assert.equal(await recovery.locator("#run").getAttribute("aria-pressed"), "false");
   await recovery.close();
+  // Render-only coverage: sparks appear at all wheel contacts during actual slip.
+  let slipping = manage(initialState(), "fire").state;
+  for (let i = 0; i < 4; i++) slipping = manage(slipping, "boiler").state;
+  slipping.specs.reliefPressure = 3e6;
+  slipping.controls.throttle = 1;
+  slipping.controls.reverser = 1;
+  const sparksPage = await browser.newPage();
+  sparksPage.on("pageerror", (error) => errors.push(error.message));
+  await sparksPage.addInitScript((raw) => {
+    localStorage.setItem("ps-choo-choo.snapshot", raw);
+    const clear = CanvasRenderingContext2D.prototype.clearRect;
+    const arc = CanvasRenderingContext2D.prototype.arc;
+    CanvasRenderingContext2D.prototype.clearRect = function (...args) {
+      if (this.canvas.id === "schematic") window.renderedSparkWheels = [];
+      return clear.apply(this, args);
+    };
+    CanvasRenderingContext2D.prototype.arc = function (x, y, ...args) {
+      if (this.canvas.id === "schematic" && y === 491 && [445, 550, 655].includes(x))
+        window.renderedSparkWheels.push(x);
+      return arc.call(this, x, y, ...args);
+    };
+  }, encode(slipping));
+  await sparksPage.goto(base);
+  assert.deepEqual(await sparksPage.evaluate(() => window.renderedSparkWheels), []);
+  await sparksPage.locator("#run").click();
+  await sparksPage.locator('[data-alert="slip"]').waitFor();
+  await sparksPage.waitForFunction(() => window.renderedSparkWheels?.length === 3);
+  assert.deepEqual(await sparksPage.evaluate(() => window.renderedSparkWheels), [445, 550, 655]);
+  await sparksPage.screenshot({ path: "/tmp/ps-choo-choo-wheel-sparks.png", fullPage: true });
+  await sparksPage.locator("#throttle").fill("0");
+  await sparksPage.waitForFunction(() => window.renderedSparkWheels?.length === 0);
+  await sparksPage.close();
+
   await testTerrain(browser, base);
   await testAudio(browser, base);
   assert.deepEqual(errors, []);
