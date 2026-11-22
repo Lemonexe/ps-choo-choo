@@ -8,6 +8,7 @@
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "lint": "oxlint",
+    "validate": "npm run format && npm run format:check && npm run lint -- --deny-warnings && npm run typecheck && npm test && npm run test:convergence && npm run test:browser",
     "build": "tsc",
     "build:vercel": "npm run build && node scripts/build-vercel.mjs",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.physics.json",

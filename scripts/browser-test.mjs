@@ -27,6 +27,19 @@ try {
     deviceScaleFactor: 1,
   });
   await page.addInitScript(() => {
+    const clear = CanvasRenderingContext2D.prototype.clearRect;
+    const ellipse = CanvasRenderingContext2D.prototype.ellipse;
+    CanvasRenderingContext2D.prototype.clearRect = function (...args) {
+      if (this.canvas.id === "schematic") window.renderedPlumes = { chimney: false, relief: false };
+      return clear.apply(this, args);
+    };
+    CanvasRenderingContext2D.prototype.ellipse = function (x, y, ...args) {
+      if (this.canvas.id === "schematic" && window.renderedPlumes) {
+        if (x > 900 && y < 104) window.renderedPlumes.chimney = true;
+        if (x > 600 && x < 710 && y < 125) window.renderedPlumes.relief = true;
+      }
+      return ellipse.call(this, x, y, ...args);
+    };
     const pending = sessionStorage.getItem("test-pending-snapshot");
     if (pending) {
       localStorage.setItem("ps-choo-choo.snapshot", pending);
@@ -62,6 +75,10 @@ try {
   await page.keyboard.press("ArrowRight");
   await page.locator("#phase-label").waitFor();
   assert.equal(await page.locator("#panel-start").isVisible(), false);
+  assert.deepEqual(await page.evaluate(() => window.renderedPlumes), {
+    chimney: false,
+    relief: false,
+  });
   assert.equal(await page.locator("main > .stats").count(), 0);
   assert.equal(await page.locator("#stat-mass").count(), 0);
   assert.equal(await page.locator(".train-stats .stat").count(), 4);
@@ -100,11 +117,14 @@ try {
   assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "true");
   assert.equal(await page.locator("#run").getAttribute("aria-label"), "Pause simulation");
   assert.equal(await page.locator("#run span").textContent(), "Ⅱ");
+  await page.waitForFunction(() => window.renderedPlumes.chimney);
   await page.locator("#vent").hover();
   await page.mouse.down();
   assert.equal(await page.locator("#vent").evaluate((el) => el.classList.contains("held")), true);
+  await page.waitForFunction(() => window.renderedPlumes.relief);
   await page.mouse.up();
   assert.equal(await page.locator("#vent").evaluate((el) => el.classList.contains("held")), false);
+  await page.waitForFunction(() => !window.renderedPlumes.relief);
   await page.getByRole("tab", { name: "📝 Specifications", exact: true }).click();
   assert.equal(await page.locator("#condenser").isDisabled(), true);
   await page.getByRole("tab", { name: "📈 Management", exact: true }).click();

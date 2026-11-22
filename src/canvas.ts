@@ -14,6 +14,15 @@ const colors = {
   pale: "#f4f6eb",
 };
 
+// Fixed visual seeds only: particle positions are derived from simulation time,
+// so pausing/speeding up needs no particle history or extra animation timer.
+const particles = Array.from({ length: 36 }, () => ({
+  offset: Math.random(),
+  direction: Math.random() * 2 - 1,
+  phase: Math.random() * Math.PI * 2,
+  lifetime: 2 + Math.random() * 1.5,
+}));
+
 export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void {
   const ratio = window.devicePixelRatio || 1,
     width = canvas.clientWidth;
@@ -82,14 +91,21 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
   const label = (name: string, x: number, y: number): void => text(name, x, y, 11, colors.ink);
   const temp = (T: number): string => `${(T - 273.15).toFixed(0)} °C`;
 
-  const plume = (x: number, y: number): void => {
-    for (let i = 0; i < 3; i++) {
-      c.strokeStyle = "#c7cbbd";
-      c.lineWidth = 1.5;
+  const plume = (x: number, y: number, height: number, steam: boolean): void => {
+    c.save();
+    c.fillStyle = steam ? "#b9c9c4" : "#9da49a";
+    for (const particle of particles) {
+      const age = (s.time / particle.lifetime + particle.offset) % 1;
+      // Constant rise; outward drift plus soft eddies inside a widening cone.
+      const sway = Math.sin(age * 9 + particle.phase) - Math.sin(particle.phase);
+      const dx = particle.direction * 26 * age + sway * 7 * age * (1 - age);
+      const radius = 2 + age * 10;
+      c.globalAlpha = Math.sin(Math.PI * age) * (steam ? 0.34 : 0.28);
       c.beginPath();
-      c.ellipse(x + i * 10, y - i * 15, 8 + i * 4, 4 + i * 3, -0.4, 0, 2 * Math.PI);
-      c.stroke();
+      c.ellipse(x + dx, y - age * height, radius, radius * 0.7, 0, 0, 2 * Math.PI);
+      c.fill();
     }
+    c.restore();
   };
 
   // Subtle reference grid.
@@ -100,6 +116,10 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
       c.arc(x, y, 0.6, 0, 2 * Math.PI);
       c.fill();
     }
+
+  // Plumes go behind every label and fitting, preserving legibility.
+  if (d.burnRate > 0.001) plume(947, 125, 130, false);
+  if (d.reliefRate > 0 || (s.controls.vent && d.boiler.p > ATM)) plume(654, 120, 125, true);
 
   text("SUPPLIES", 35, 48, 10);
   box(35, 65, 145, 100);
@@ -218,7 +238,6 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
     d.reliefRate > 0 ? "#b67c41" : "#a9b79f",
   );
   text("RELIEF", 634, 107, 9, d.reliefRate > 0 ? "#b67c41" : colors.muted, "center");
-  if (d.reliefRate > 0 || s.controls.vent) plume(659, 115);
 
   // Gas passage to flues and chimney. Dashed amber = heat-bearing flue gas.
   line(
@@ -276,7 +295,6 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
   text("CHIMNEY", 945, 40, 10, colors.muted, "center");
   text(temp(d.chimneyT), 945, 63, 19, "#9a8258", "center");
   text(`${d.flueGasRate.toFixed(2)} kg/s`, 945, 83, 13, "#9a8258", "center");
-  if (d.burnRate > 0.001) plume(943, 94);
 
   // Cylinder, exhaust path and optional condenser.
   line(

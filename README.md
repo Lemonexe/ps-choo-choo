@@ -83,6 +83,8 @@ and energy changes. They are repeatable sandbox conveniences.
 
 ## Verification
 
+Before committing, run `npm run validate` to format files and run all checks.
+
 ```sh
 npm test                 # forward IF97 references, components, balances, snapshots
 npm run typecheck
