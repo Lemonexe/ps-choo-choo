@@ -133,6 +133,7 @@ function save(): void {
 }
 function setRunning(value: boolean): void {
   running = value;
+  element("canvas-paused").hidden = running;
   if (!running) state = { ...state, controls: { ...state.controls, vent: false, blowdown: false } };
   const button = element<HTMLButtonElement>("run");
   const label = running ? "Pause simulation" : "Resume simulation";

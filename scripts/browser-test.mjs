@@ -77,6 +77,7 @@ try {
   await page.keyboard.press("ArrowRight");
   await page.locator("#phase-label").waitFor();
   assert.equal(await page.locator("#panel-start").isVisible(), false);
+  assert.equal(await page.locator("#canvas-paused").isVisible(), true);
   assert.deepEqual(await page.evaluate(() => window.renderedPlumes), {
     chimney: false,
     relief: false,
@@ -117,6 +118,7 @@ try {
   await page.locator("#run").click();
   await page.waitForFunction(() => document.getElementById("clock").textContent !== "🕒 00:00");
   assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "true");
+  assert.equal(await page.locator("#canvas-paused").isVisible(), false);
   assert.equal(await page.locator("#run").getAttribute("aria-label"), "Pause simulation");
   assert.equal(await page.locator("#run span").textContent(), "Ⅱ");
   await page.waitForFunction(() => window.renderedPlumes.chimney);
@@ -142,6 +144,7 @@ try {
   );
   assert.ok(saved.state.time > 0);
   assert.equal(saved.state.specs.condenser, true);
+  assert.equal(await page.locator("#canvas-paused").isVisible(), true);
   await page.screenshot({ path: "/tmp/ps-choo-choo-desktop.png", fullPage: true });
   await page.reload();
   assert.equal(await page.locator("#panel-cab").isVisible(), true);
