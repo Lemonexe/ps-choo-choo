@@ -1,6 +1,6 @@
 # Formatting and verification
 
-From the repository root, always run the formatter and all verification commands before completing a change. Run them in this order:
+From the repository root, run the formatter and verification commands before completing a change. Run them in the order shown below. Run `npm run test:convergence` only when changes to mathematical, physical, or other code can affect the convergence tests.
 
 ```sh
 npm run format

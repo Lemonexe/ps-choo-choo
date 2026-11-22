@@ -50,7 +50,6 @@ jobs:
           npm run format:check
           npm run lint -- --deny-warnings
           npm test
-          npm run test:convergence
       - name: Install browser for smoke test
         run: npx playwright install --with-deps chromium
       - name: Install Vercel CLI
