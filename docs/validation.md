@@ -6,7 +6,7 @@ are pinned in `package-lock.json`.
 
 ## Automated checks
 
-- **43 passing tests** through `npm test`, including the DOM-free physics build.
+- **45 passing tests** through `npm test`, including the DOM-free physics build.
 - Published IF97 forward cases for Regions 1, 2, 3 and 5; direct saturation cases
   for Region 4. Forward reference comparisons allow 2×10⁻⁷ relative discrepancy
   against rounded published values.
@@ -28,6 +28,9 @@ are pinned in `package-lock.json`.
   capacity/control limits, nonfinite and unsupported fluid states.
 - JSON file export/import round trip into clean state, and deep backfill of
   missing nested fields while preserving explicit zero/false values.
+- Vercel output contains the app's native ESM dependency paths and license notices,
+  excludes source/declaration/map files, removes stale output and preserves project
+  linkage. Extensionless fallback excludes missing JavaScript assets.
 
 ## Fixed-step convergence
 
@@ -98,6 +101,11 @@ finished without a solver failure. It took about 25 seconds wall time on this ho
 
 Desktop/mobile screenshots were visually inspected. The browser script writes
 fresh screenshots under `/tmp`; generated screenshots are not committed.
+
+`npm run test:browser:static` runs that same smoke test against the packaged
+`.vercel/output/static` directory. Building and testing the artifact needs no
+Vercel credentials. An authenticated GitHub-to-Vercel deployment still requires
+the three project secrets described in `deployment.md`.
 
 ## Numerical boundaries and remaining approximations
 

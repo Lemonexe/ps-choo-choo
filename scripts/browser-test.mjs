@@ -7,8 +7,14 @@ import { initialState } from "../dist/physics/simulation.js";
 import { pt } from "../dist/physics/thermo.js";
 import { DESIGN } from "../dist/physics/types.js";
 import { encode } from "../dist/persistence.js";
+import { fileURLToPath } from "node:url";
 
-const server = serve(0);
+const server = serve(
+  0,
+  process.argv.includes("--static")
+    ? fileURLToPath(new URL("../.vercel/output/static", import.meta.url))
+    : undefined,
+);
 if (!server.listening) await once(server, "listening");
 let browser;
 try {

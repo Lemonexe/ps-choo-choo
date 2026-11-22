@@ -30,6 +30,13 @@ Opening `index.html` through `file://` does not work reliably with browser ESM.
 If your shell uses PMG, check `which npm` before installing/upgrading packages and
 review its output. Build and test commands do not require PMG.
 
+## Deployment
+
+Vercel deployment is configured through GitHub Actions on pushes to `master`.
+`npm run build:vercel` packages a standalone native-ESM SPA; the workflow tests
+and uploads that prebuilt output. Add the three Vercel secrets described in
+[deployment setup](docs/deployment.md) before pushing the workflow to `master`.
+
 ## Drive
 
 The first **Getting started** tab contains the introduction. Open **Driving cab**

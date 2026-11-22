@@ -12,14 +12,15 @@ const mime = {
   ".map": "application/json",
   ".svg": "image/svg+xml",
 };
-export function serve(port = Number(process.env.PORT || 5173)) {
+export function serve(port = Number(process.env.PORT || 5173), directory = root) {
+  const servingRoot = resolve(directory);
   const server = createServer(async (req, res) => {
     try {
       const pathname = decodeURIComponent(new URL(req.url, "http://localhost").pathname);
-      const path = resolve(root, `.${pathname === "/" ? "/index.html" : pathname}`);
-      const relative = path.slice(root.length);
+      const path = resolve(servingRoot, `.${pathname === "/" ? "/index.html" : pathname}`);
+      const relative = path.slice(servingRoot.length);
       if (
-        !path.startsWith(root + sep) ||
+        !path.startsWith(servingRoot + sep) ||
         relative.startsWith(".git/") ||
         !(
           pathname === "/" ||

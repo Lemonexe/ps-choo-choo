@@ -9,13 +9,15 @@
     "format:check": "oxfmt --check",
     "lint": "oxlint",
     "build": "tsc",
+    "build:vercel": "npm run build && node scripts/build-vercel.mjs",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.physics.json",
     "watch": "tsc --watch",
     "start": "node scripts/serve.mjs",
     "dev": "node scripts/dev.mjs",
     "test": "npm run typecheck && npm run build && node --test --test-isolation=none tests/*.test.mjs",
     "test:convergence": "npm run build && node scripts/convergence.mjs",
-    "test:browser": "npm run build && node scripts/browser-test.mjs"
+    "test:browser": "npm run build && node scripts/browser-test.mjs",
+    "test:browser:static": "npm run build:vercel && node scripts/browser-test.mjs --static"
   },
   "dependencies": {
     "iapws-if97": "2.8.0"
@@ -29,12 +31,12 @@
   "devEngines": {
     "packageManager": {
       "name": "npm",
-      "version": ">=12",
+      "version": ">=11",
       "onFail": "error"
     }
   },
   "engines": {
     "node": ">=26.13.0",
-    "npm": ">=12"
+    "npm": ">=11"
   }
 }
