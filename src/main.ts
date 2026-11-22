@@ -5,6 +5,7 @@ import { decode, encode, loadSnapshot, STORAGE_KEY } from "./persistence.js";
 import { cutoffPercent } from "./physics/cylinder.js";
 import {
   addCoal,
+  changeTerrain,
   initialState,
   inspect,
   manage,
@@ -189,7 +190,7 @@ function sync(): void {
     input.checked = state.specs[id];
     input.disabled = running;
   }
-  for (const id of ["passenger", "freight", "slope", "reliefPressure"] as const) {
+  for (const id of ["passenger", "freight", "reliefPressure"] as const) {
     const input = element<HTMLInputElement>(id);
     input.value = String(
       id === "reliefPressure" ? Math.round((state.specs[id] - ATM) / 1e4) / 10 : state.specs[id],
@@ -199,6 +200,8 @@ function sync(): void {
   }
   for (const button of document.querySelectorAll<HTMLButtonElement>("[data-manage]"))
     button.disabled = running;
+  element<HTMLSelectElement>("terrain-mode").value = state.terrain.generated ? "generated" : "flat";
+  element<HTMLSelectElement>("terrain-mode").disabled = running;
   element("management-lock").hidden = !running;
   element("specs-lock").hidden = !running;
   element<HTMLButtonElement>("coal-charge").disabled = state.bunker <= 0 || state.fire.coal >= 600;
@@ -207,6 +210,9 @@ function sync(): void {
 function render(): void {
   if (!dirty) return;
   dirty = false;
+  setText("track-slope", `${((diagnostics.trackAngle * 180) / Math.PI).toFixed(1)}°`);
+  setText("track-distance", `${(state.distance / 1000).toFixed(2)} km`);
+  setText("track-altitude", `${state.altitude.toFixed(0)} m`);
   const seconds = Math.floor(state.time + 1e-9);
   setText(
     "clock",
@@ -376,12 +382,35 @@ window.addEventListener("pagehide", () => {
   save();
 });
 
+element("terrain-mode").addEventListener("change", () => {
+  if (running) {
+    sync();
+    return;
+  }
+  try {
+    const generated = element<HTMLSelectElement>("terrain-mode").value === "generated";
+    const seed = generated ? crypto.getRandomValues(new Uint32Array(1))[0]! : 0;
+    state = changeTerrain(state, generated, seed);
+    diagnostics = inspect(state);
+    sync();
+    dirty = true;
+    save();
+    render();
+    toast(
+      generated
+        ? "A new railway landscape is ready."
+        : "Flat track. Generated terrain has been cleared.",
+    );
+  } catch (error) {
+    report(error);
+  }
+});
+
 for (const id of [
   "condenser",
   "automaticStoker",
   "passenger",
   "freight",
-  "slope",
   "reliefPressure",
 ] as const) {
   element<HTMLInputElement>(id).addEventListener("change", () => {

@@ -34,6 +34,10 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
   if (!c) return;
   c.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
   c.clearRect(0, 0, W, H);
+  c.save();
+  c.translate(W / 2, 493);
+  c.rotate(-d.trackAngle);
+  c.translate(-W / 2, -493);
   c.lineCap = "round";
   c.lineJoin = "round";
   const text = (
@@ -373,8 +377,8 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
   // Three coupled driving wheels and rail.
   line(
     [
-      [390, 493],
-      [740, 493],
+      [-W, 493],
+      [2 * W, 493],
     ],
     "#bfc8b4",
     false,
@@ -388,7 +392,7 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
     c.arc(x, 449, 42, 0, Math.PI * 2);
     c.fill();
     c.stroke();
-    const angle = (s.time * s.speed) / 1;
+    const angle = s.distance;
     for (let j = 0; j < 8; j++) {
       const a = angle + (j * Math.PI) / 4;
       line(
@@ -425,4 +429,5 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
     d.slipPower > 100 ? "#b17d44" : colors.muted,
     "center",
   );
+  c.restore();
 }

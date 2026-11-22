@@ -1,3 +1,4 @@
+import { terrainAt } from "./terrain.js";
 import { DESIGN, type Specs, type State } from "./types.js";
 
 export function trainMass(state: State): number {
@@ -31,7 +32,7 @@ export function move(
 ): { speed: number; dissipated: number; gradeWork: number; kineticError: number } {
   const mass = trainMass(state),
     v = state.speed;
-  const grade = -mass * 9.80665 * Math.sin(Math.atan(state.specs.slope / 1000));
+  const grade = -mass * 9.80665 * terrainAt(state.terrain, state.distance).rise;
   const drive = Math.sign(state.controls.reverser) * force;
   const drag = resistance(v, state.specs);
   const brake = state.controls.brake * 0.14 * mass * 9.80665;

@@ -89,7 +89,7 @@ Never cool components through preheat. Account externally added mass/energy.
 Specs editable only paused; carriage count additionally requires standstill.
 Live controls: throttle, signed cutoff/direction, stoker/manual coal, water pump,
 hold-to-vent, brakes, sand. Specs: condenser off by default, manual firing default,
-passenger/freight count, slope, relief setting. Relief changes apply on next step.
+passenger/freight count, relief setting. Paused Specifications selects Flat/Generated seeded terrain. Relief changes apply on next step.
 
 Canvas schematic annotates components. Stats: speed, total water/steam enthalpy,
 net estimated cycle thermal efficiency (pump work included; slip/drag excluded;

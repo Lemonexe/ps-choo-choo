@@ -106,18 +106,19 @@ results and numerical tolerances.
 
 ## Code map
 
-| File                           | Responsibility                                                       |
-| ------------------------------ | -------------------------------------------------------------------- |
-| `src/physics/thermo.ts`        | SI adapter, phase states, equilibrium `(mass, energy, volume)` flash |
-| `src/physics/boiler.ts`        | fixed-volume initialization and phase-aware relief                   |
-| `src/physics/heat.ts`          | fire, gas properties, radiation and heat exchange                    |
-| `src/physics/flow.ts`          | equilibrium nozzle, superheater and hydraulic work                   |
-| `src/physics/cylinder.ts`      | periodic cylinder, admission matching and algebraic slip             |
-| `src/physics/motion.ts`        | train mass, Davis resistance, grade, braking                         |
-| `src/physics/simulation.ts`    | pure previous-to-next tick and reconciled transfer ledger            |
-| `src/physics/types.ts`         | state contracts and documented parameter estimates                   |
-| `src/persistence.ts`           | versioned snapshot encoding and validation, without storage access   |
-| `src/main.ts`, `src/canvas.ts` | browser scheduling, storage, controls and drawing                    |
+| File                           | Responsibility                                                         |
+| ------------------------------ | ---------------------------------------------------------------------- |
+| `src/physics/thermo.ts`        | SI adapter, phase states, equilibrium `(mass, energy, volume)` flash   |
+| `src/physics/boiler.ts`        | fixed-volume initialization and phase-aware relief                     |
+| `src/physics/heat.ts`          | fire, gas properties, radiation and heat exchange                      |
+| `src/physics/flow.ts`          | equilibrium nozzle, superheater and hydraulic work                     |
+| `src/physics/cylinder.ts`      | periodic cylinder, admission matching and algebraic slip               |
+| `src/physics/terrain.ts`       | seeded rounded railway profile, signed position, bounded block windows |
+| `src/physics/motion.ts`        | train mass, Davis resistance, grade, braking                           |
+| `src/physics/simulation.ts`    | pure previous-to-next tick and reconciled transfer ledger              |
+| `src/physics/types.ts`         | state contracts and documented parameter estimates                     |
+| `src/persistence.ts`           | versioned snapshot encoding and validation, without storage access     |
+| `src/main.ts`, `src/canvas.ts` | browser scheduling, storage, controls and drawing                      |
 
 The coordinator uses a shared old state and equal/opposite transfers. Only the
 new state is returned. Bounded exact-property memoization stores up to 256
@@ -147,3 +148,12 @@ firebox, and liquid blowdown. **Settings → Sound** enables it and sets volume;
 preferences are saved separately from locomotive snapshots. Hold **Whistle** in
 the cab for a pressure-sensitive steam whistle, including while paused. Faster
 simulation increases rhythmic cadence without shifting the sounds' tonal pitch.
+
+In **Specifications → Terrain**, choose **Flat** or **Generated** while paused. Generated
+terrain uses a saved seed and long rounded hills, capped at 3.5°. The canvas tilts
+with the railway; the upright readout shows slope, signed distance from zero and
+altitude. The terrain continues in either direction through bounded 10 km blocks.
+Returning to Flat clears the landscape; choosing Generated again makes a new one.
+Both keep distance, speed and locomotive condition, but reset/recalculate altitude.
+New/reset trains start with four passenger carriages; migrated saves keep their
+existing consists.

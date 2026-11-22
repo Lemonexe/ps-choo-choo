@@ -150,9 +150,10 @@ inlet enthalpy. Nothing returns to the tender, even with the condenser enabled.
     R = 1600+65|v|+5v²
         + Npassenger(140+8|v|+0.5v²)
         + Nfreight(240+12|v|+0.7v²)   [N, v in m/s]
-    Fgrade = −M g sin(atan(gradient/1000))
+    Fgrade = −M g dh/ds = −M g sin(trackAngle)
     Fbrake,max = 0.14 M g
     vnext = v + Δt(Fdrive+Fgrade−Fdrag−Fbrake)/M
+    snext = s + v Δt; hnext = terrain(snext)
 
 Static resistance/brakes hold at rest; stopping does not numerically reverse the
 train. Reversal is interlocked at 0.05 m/s. Counter-steaming is not modelled;
@@ -171,7 +172,7 @@ are excluded, so the statistic is not a complete plant efficiency.
 Thermal/chemical transfer diagnostics include coal chemical energy, vessel/internal
 energy, metal storage, atmospheric tender enthalpy, exhaust, condenser rejection,
 ambient loss and indicated shaft work. Transfer residuals should be floating-point
-roundoff. Mechanical kinetic-energy error from explicit Euler is reported
+roundoff. Mechanical kinetic/potential-energy error from explicit Euler is reported
 separately rather than hidden by a correction. Timestep convergence bounds this.
 
 ## Parameter provenance
@@ -271,3 +272,58 @@ and quiet harmonics. It consumes no steam and ignores simulation playback speed.
 Pointer/key release, cancellation, lost focus, muting, and hiding release it.
 Pausing silences simulation layers; hiding silences everything. This is a
 stylized sound design, not an acoustic reconstruction of 01 118.
+
+## Seeded railway terrain
+
+Distance is signed track chainage in metres from zero, including negative positions;
+it is not an odometer or a horizontal map coordinate. New/reset locomotives have
+four 45 t passenger carriages and start on Flat at distance zero, altitude 250 m.
+Old version-1/2 snapshots retain their inventories, velocity and consists, discard
+the manual gradient, and migrate to this flat origin in version 3.
+
+Inspired by [https://github.com/Lemonexe/Felda/blob/c6ce7797fa6a1bc127804415e4c97c58c20a82cb/app/leveldata.js#L51](Felda Simulátor),
+the landscape sums independent random
+zig-zag layers with globally indexed knots. Keep only 5000, 2000 and 1000 m
+knot spacing, with derivative-bound shares 0.45, 0.35 and 0.20. For spacing L and
+share w, the centered uniform knot-height range is L w sin(3.5°). Each layer's
+linear derivative is bounded by w sin(3.5°), so their sum is bounded by sin(3.5°).
+A 100 m box average rounds the zig-zag corners into quadratic vertical curves;
+its derivative is `(hraw(s+50)−hraw(s−50))/100`. Integrate the raw linear segments
+analytically to obtain height. This preserves a continuous height and gradient
+without increasing the bound. Angle is `asin(dh/ds)` because s is along-track
+length. No root solver, numerical quadrature, or interpolation table is needed.
+Ordinary gradients are smaller; a near-extreme requires rare alignment of layers.
+
+The rounded 3.5° ceiling follows the agreed 20% margin above the sanded reference
+train's approximate holding limit. Full initial stores plus four passenger cars
+weigh about 350.6 t. Sand adhesion is 176.5 kN; subtract 2.16 kN starting resistance
+for a holding limit around 50.8‰, whose 1.2× margin is about 3.49°. It is a fixed
+terrain-generation bound, not recalculated with the current load or steam state.
+It is not a claim that 3.5° is a typical Class 01 main-line gradient, nor a promise
+that the train can crest every long steep section at speed.
+
+Pure `terrain.ts` holds bounded module state: 10 km blocks with seeded layer
+knots and padding for the rounded ends. The current block is always present;
+load neighbors within 1 km, retain them until more than 2 km away. At most three
+blocks are retained. The seed hashes signed global knot indices, so seams match
+in both height and gradient, visiting order is irrelevant, and revisiting a
+forgotten block reproduces its exact terrain. Cache blocks and seed are included
+in snapshots and validated against canonical seeded knots on restore. Supported
+chainage is ±10¹² m, keeping the generator's coordinate arithmetic well defined.
+
+Only paused terrain changes are permitted, including when velocity is nonzero.
+Flat clears the seed/cache and sets altitude to 250 m. Generated draws a new seed
+and recomputes height at the existing chainage. Both retain all other locomotive
+state, including velocity/kinetic energy. Potential-energy jumps during these
+terrain changes are deliberately ignored. In normal motion, gravity uses the
+previous-position derivative, position advances by explicit Euler, and altitude
+is sampled from the same height function at the new position. Treat the train as
+one body at the locomotive's position; no separate carriage gradients are used.
+Mechanical residual includes the previous-mass change in gravitational potential
+energy as well as Euler kinetic error; variable-mass transport remains neglected.
+Thermal/mass ledgers and the displayed water/steam enthalpy remain unchanged.
+
+The full canvas, labels and rail rotate by the true track angle about wheel/rail
+height. The horizontal rail before transformation spans beyond both canvas edges.
+The HTML slope (degrees), distance (km), and altitude (m) readout remains upright
+at the viewport's bottom left, even when the mobile schematic scrolls.

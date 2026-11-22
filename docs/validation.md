@@ -1,12 +1,12 @@
 # Validation record
 
-Verified locally with Node.js 24.17.0, TypeScript 7.0.2, iapws-if97 2.8.0 and
-Playwright 1.65.1 driving the installed Brave/Chromium browser. Package versions
+Verified locally with Node.js 26.13.0, TypeScript 7.0.2, iapws-if97 2.8.0 and
+Playwright 1.65.1 driving its installed Chromium browser. Package versions
 are pinned in `package-lock.json`.
 
 ## Automated checks
 
-- **52 passing tests** through `npm test`, including the DOM-free physics build.
+- **61 passing tests** through `npm test`, including the DOM-free physics build.
 - Published IF97 forward cases for Regions 1, 2, 3 and 5; direct saturation cases
   for Region 4. Forward reference comparisons allow 2×10⁻⁷ relative discrepancy
   against rounded published values.
@@ -85,7 +85,7 @@ finished without a solver failure. It took about 25 seconds wall time on this ho
 - Held manual vent and pointer release.
 - Liquid blowdown restores admission from an overfilled version-1 save without
   resetting the boiler. Pointer/keyboard release, cancellation, focus loss, pause,
-  hidden-document pause and reload close the valve. Snapshots migrate to version 2.
+  hidden-document pause and reload close the valve. Snapshots migrate to version 3.
 - Paused-only specification/management controls.
 - Saved controls/specifications and paused reload.
 - Hidden-document automatic pause.
@@ -135,3 +135,16 @@ pressurized whistle while paused without a physics change, pointer/key/blur rele
 fire audio, pause/mute/hidden silence, settings persistence across reset/import/reload,
 and graceful device failure with retry. No golden waveform or acoustic realism
 claim is made; procedural timbre is intentionally stylized.
+
+## Terrain validation
+
+Terrain tests cover deterministic seeded layers, the 3.5° bound, analytic height
+versus derivative, rounded-knot and positive/negative block-seam continuity,
+1 km load/2 km discard hysteresis, bounded immutable caches and exact regeneration,
+Euler forward/reverse travel, gravitational downhill motion, timestep/mechanical
+residual convergence, mode-change momentum preservation, strict version-3
+snapshot round trips and legacy consist-preserving migration, and corrupt terrain
+rejection. The convergence script also crosses a generated-terrain block seam.
+Browser smoke checks cover the paused-only toggle, regeneration at nonzero speed,
+seed/position restore, actual rotation of canvas labels, a full-width rail, and
+an upright HTML readout that stays fixed while the mobile schematic scrolls.

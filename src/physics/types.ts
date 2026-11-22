@@ -1,3 +1,4 @@
+import type { TerrainState } from "./terrain.js";
 import type { Water } from "./thermo.js";
 
 export interface BoilerState {
@@ -28,11 +29,14 @@ export interface Specs {
   automaticStoker: boolean;
   passenger: number;
   freight: number;
-  slope: number;
   reliefPressure: number;
 }
 export interface State {
   time: number;
+  /** Signed track position (m), not an accumulated odometer. */
+  distance: number;
+  altitude: number;
+  terrain: TerrainState;
   boiler: BoilerState;
   fire: FireState;
   tank: TankState;
@@ -68,6 +72,8 @@ export interface Engine {
   cutoff: number;
 }
 export interface Diagnostics {
+  /** Angle in radians, positive uphill in the forward direction. */
+  trackAngle: number;
   boiler: Water;
   level: number | null;
   fireT: number;

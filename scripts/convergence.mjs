@@ -1,5 +1,6 @@
+import { terrainAt } from "../dist/physics/terrain.js";
 import assert from "node:assert/strict";
-import { initialState, manage, step, inspect } from "../dist/physics/simulation.js";
+import { initialState, manage, step, inspect, changeTerrain } from "../dist/physics/simulation.js";
 import { thermalEnergy } from "../dist/physics/heat.js";
 import { DESIGN } from "../dist/physics/types.js";
 import { pt } from "../dist/physics/thermo.js";
@@ -20,6 +21,15 @@ const scenarios = {
   "vent + relief"(s) {
     s.controls.vent = true;
     s.specs.reliefPressure *= 0.95;
+  },
+  "generated terrain"(s) {
+    s.distance = 9990;
+    Object.assign(s, changeTerrain(s, true, 123));
+    s.speed = 20;
+    s.controls.brake = 0;
+    s.controls.throttle = 0.2;
+    s.controls.sand = true;
+    s.altitude = terrainAt(s.terrain, s.distance).altitude;
   },
   "liquid blowdown"(s) {
     const water = pt(2e6, 470),
@@ -57,6 +67,8 @@ for (const [name, configure] of Object.entries(scenarios)) {
     }
     const result = {
       dt,
+      distance: s.distance,
+      altitude: s.altitude,
       pressure: d.boiler.p,
       speed: s.speed,
       coal: s.fire.coal,
@@ -74,7 +86,15 @@ for (const [name, configure] of Object.entries(scenarios)) {
   }
   const [coarse, medium, fine] = runs;
   const errors = {};
-  for (const key of ["pressure", "speed", "coal", "steamMass", "enthalpy"]) {
+  for (const key of [
+    "pressure",
+    "speed",
+    "coal",
+    "steamMass",
+    "enthalpy",
+    "distance",
+    "altitude",
+  ]) {
     const scale = Math.max(key === "speed" ? 1 : 1e-6, Math.abs(fine[key]));
     const error = Math.abs(coarse[key] - fine[key]) / scale;
     const halfError = Math.abs(medium[key] - fine[key]) / scale;

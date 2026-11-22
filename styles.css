@@ -988,3 +988,43 @@ dialog .button {
 .sound-settings .switch-line {
   margin-top: 18px;
 }
+
+.schematic-stage {
+  position: relative;
+}
+.track-readout {
+  position: absolute;
+  left: 16px;
+  bottom: 12px;
+  display: grid;
+  gap: 3px;
+  padding: 7px 10px;
+  border-radius: 4px;
+  color: #577e6f;
+  font-size: 12px;
+  pointer-events: none;
+}
+.track-readout strong {
+  font-weight: 500;
+}
+.terrain-control {
+  margin-bottom: 22px;
+}
+.terrain-control label {
+  font-weight: 600;
+  margin-right: 16px;
+}
+.terrain-control select {
+  font: inherit;
+  color: inherit;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 7px 12px;
+}
+@media (max-width: 760px) {
+  .track-readout {
+    bottom: 34px;
+    font-size: 10px;
+  }
+}

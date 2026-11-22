@@ -125,17 +125,24 @@
                 <i class="heat-dot"> </i> heat</span
               >
             </div>
-            <div
-              class="schematic-viewport"
-              tabindex="0"
-              aria-label="Steam circuit, scroll horizontally on small screens"
-            >
-              <canvas
-                id="schematic"
-                aria-label="Locomotive schematic with boiler, firebox, superheater, cylinder, condenser, tender and live thermodynamic values"
-                role="img"
+            <div class="schematic-stage">
+              <div
+                class="schematic-viewport"
+                tabindex="0"
+                aria-label="Steam circuit, scroll horizontally on small screens"
               >
-              </canvas>
+                <canvas
+                  id="schematic"
+                  aria-label="Locomotive schematic with boiler, firebox, superheater, cylinder, condenser, tender and live thermodynamic values"
+                  role="img"
+                >
+                </canvas>
+              </div>
+              <div class="track-readout" aria-label="Track position">
+                <span>Slope: <strong id="track-slope">0.0°</strong></span>
+                <span>Distance <strong id="track-distance">0.00 km</strong></span>
+                <span>Altitude <strong id="track-altitude">250 m</strong></span>
+              </div>
             </div>
             <div class="schematic-footer">
               <span id="phase-label">Equilibrium water + steam</span>
@@ -337,7 +344,7 @@
             <label class="number-control" for="passenger"
               >Passenger carriages
               <span>
-                <input id="passenger" type="number" min="0" max="100" step="1" value="6" /> × 45
+                <input id="passenger" type="number" min="0" max="100" step="1" value="4" /> × 45
                 t</span
               >
             </label>
@@ -348,16 +355,20 @@
                 t</span
               >
             </label>
-            <label class="number-control" for="slope"
-              >Track gradient
-              <span>
-                <input id="slope" type="number" min="-100" max="100" step="1" value="0" /> ‰</span
+            <div class="terrain-control">
+              <label for="terrain-mode">Terrain</label>
+              <select
+                id="terrain-mode"
+                title="Switching to Flat clears the generated landscape and resets altitude. Switch back to Generated for a new landscape; distance and speed are kept."
               >
-            </label>
-            <p class="muted">
-              Positive climbs in the forward direction. Negative descends. Resistance coefficients
-              are engineering estimates.
-            </p>
+                <option value="flat">Flat</option>
+                <option value="generated">Generated</option>
+              </select>
+              <p class="muted">
+                Pause to change terrain. Distance and speed are kept; altitude is recalculated.
+              </p>
+            </div>
+            <p class="muted">Resistance coefficients are engineering estimates.</p>
           </div>
         </div>
       </section>

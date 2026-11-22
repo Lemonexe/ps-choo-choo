@@ -239,7 +239,7 @@ test("snapshots are versioned, reject corrupt states, and release held valves on
   assert.equal(loaded.controls.vent, false);
   assert.equal(loaded.controls.blowdown, false);
   const raw = JSON.parse(encode(s));
-  assert.equal(raw.version, 2);
+  assert.equal(raw.version, 3);
   assert.equal(raw.state.controls.blowdown, false);
   assert.deepEqual(loaded.boiler, s.boiler);
   assert.throws(() => decode("{"));
@@ -274,7 +274,7 @@ test("cycle efficiency uses a per-kg feedwater reference independent of live fee
 test("snapshot validation rejects vapor-filled and impossible empty tender states", () => {
   const s = hot();
   s.tank.energy = s.tank.mass * pt(ATM, 500).h;
-  assert.throws(() => decode(JSON.stringify({ version: 2, state: s })));
+  assert.throws(() => decode(JSON.stringify({ version: 3, state: s })));
   s.tank.mass = 0;
   s.tank.energy = 1000;
   assert.throws(() => step(s));

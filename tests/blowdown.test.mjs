@@ -118,13 +118,17 @@ test("version-1 saves migrate without resetting an overfilled boiler or other co
   s.controls.vent = true;
   const old = JSON.parse(JSON.stringify(s));
   delete old.controls.blowdown;
+  delete old.distance;
+  delete old.altitude;
+  delete old.terrain;
+  old.specs.slope = 0;
   const loaded = decode(JSON.stringify({ version: 1, state: old }));
   assert.deepEqual(loaded.boiler, s.boiler);
   assert.deepEqual(loaded.tank, s.tank);
   assert.equal(loaded.controls.pump, 0.3);
   assert.equal(loaded.controls.vent, false);
   assert.equal(loaded.controls.blowdown, false);
-  assert.equal(JSON.parse(encode(loaded)).version, 2);
+  assert.equal(JSON.parse(encode(loaded)).version, 3);
   delete old.controls.brake;
   assert.throws(() => decode(JSON.stringify({ version: 1, state: old })));
 });

@@ -1,3 +1,10 @@
+import {
+  BASE_ALTITUDE,
+  createTerrain,
+  terrainAt,
+  terrainWindow,
+  validateTerrain,
+} from "./terrain.js";
 import { filledBoiler, atPressureVolume, relief } from "./boiler.js";
 import { engineContext, traction } from "./cylinder.js";
 import { hydraulicPump, liquidBlowdown, nozzle } from "./flow.js";
@@ -23,6 +30,9 @@ export function initialState(): State {
   const feed = pt(ATM, DESIGN.ambient);
   return {
     time: 0,
+    distance: 0,
+    altitude: BASE_ALTITUDE,
+    terrain: createTerrain(),
     boiler: filledBoiler(),
     fire: { coal: 0, energy: 0 },
     tank: { mass: DESIGN.waterCapacity, energy: DESIGN.waterCapacity * feed.h },
@@ -42,9 +52,8 @@ export function initialState(): State {
     specs: {
       condenser: false,
       automaticStoker: false,
-      passenger: 6,
+      passenger: 4,
       freight: 0,
-      slope: 0,
       reliefPressure: DESIGN.nominalPressure,
     },
   };
@@ -71,6 +80,8 @@ export function boilerWater(s: State): Water {
 export function validateState(s: State): void {
   const values = [
     s.time,
+    s.distance,
+    s.altitude,
     s.speed,
     s.boiler.mass,
     s.boiler.energy,
@@ -85,6 +96,7 @@ export function validateState(s: State): void {
     ...Object.values(s.specs).filter((x): x is number => typeof x === "number"),
   ];
   values.forEach((x) => finite(x, "State value"));
+  validateTerrain(s.terrain, s.distance, s.altitude);
   if (
     s.time < 0 ||
     s.boiler.mass <= 0 ||
@@ -105,7 +117,6 @@ export function validateState(s: State): void {
       throw new SimulationError(`Invalid ${key} control.`);
   if (
     Math.abs(s.controls.reverser) > 1 ||
-    Math.abs(s.specs.slope) > 100 ||
     !Number.isInteger(s.specs.passenger) ||
     !Number.isInteger(s.specs.freight) ||
     s.specs.passenger < 0 ||
@@ -172,6 +183,7 @@ export function inspect(s: State): Diagnostics {
   validateState(s);
   const water = boilerWater(s);
   const d: Omit<Diagnostics, "alerts"> = {
+    trackAngle: terrainAt(s.terrain, s.distance).angle,
     boiler: water,
     level: waterLevel(water),
     fireT: temperature(s.fire.energy, DESIGN.fireCapacity),
@@ -332,6 +344,10 @@ export function step(previous: State, dt = DT): Step {
   next.boiler = released.boiler;
   const motion = move(s, e.force, dt);
   next.speed = motion.speed;
+  next.distance = s.distance + s.speed * dt;
+  next.terrain = terrainWindow(s.terrain, next.distance);
+  const track = terrainAt(next.terrain, next.distance);
+  next.altitude = track.altitude;
   validateState(next);
   const finalWater = released.mass > 0 ? boilerWater(next) : interim;
   const massOut = (fire.burn + vent + blowdown + exhaustMass - recovered) * dt + released.mass;
@@ -359,6 +375,7 @@ export function step(previous: State, dt = DT): Step {
   const netWork = e.power - e.steam * referencePumpWork;
   const efficiency = e.steam > 1e-6 && heating > 1 && netWork > 0 ? netWork / heating : null;
   const d: Omit<Diagnostics, "alerts"> = {
+    trackAngle: track.angle,
     boiler: finalWater,
     level: waterLevel(finalWater),
     fireT: temperature(next.fire.energy, DESIGN.fireCapacity),
@@ -386,7 +403,10 @@ export function step(previous: State, dt = DT): Step {
     trainMass: trainMass(next),
     massResidual,
     energyResidual,
-    mechanicalResidual: motion.kineticError,
+    mechanicalResidual:
+      motion.kineticError +
+      trainMass(s) * 9.80665 * (next.altitude - s.altitude) +
+      motion.gradeWork,
   };
   return {
     state: next,
@@ -459,4 +479,12 @@ export function manage(
 export function addCoal(s: State): State {
   const amount = Math.min(DESIGN.coalChunk, s.bunker, DESIGN.maxFireCoal - s.fire.coal);
   return { ...s, bunker: s.bunker - amount, fire: { ...s.fire, coal: s.fire.coal + amount } };
+}
+
+/** UI enforces paused changes. All physics inventory and momentum are preserved. */
+export function changeTerrain(s: State, generated: boolean, seed = 0): State {
+  const terrain = createTerrain(generated, seed, s.distance);
+  const next = { ...s, terrain, altitude: terrainAt(terrain, s.distance).altitude };
+  validateState(next);
+  return next;
 }

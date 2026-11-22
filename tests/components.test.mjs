@@ -1,3 +1,4 @@
+import { createTerrain, terrainAt } from "../dist/physics/terrain.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { cylinder, engine, engineContext, traction } from "../dist/physics/cylinder.js";
@@ -138,7 +139,8 @@ test("brakes hold at rest, stop without reversal, downhill can roll backward", (
   assert.equal(move(s, 0, 0.02).speed, 0);
   s.speed = 0;
   s.controls.brake = 0;
-  s.specs.slope = 20;
-  assert.ok(move(s, 0, 0.02).speed < 0);
+  s.terrain = createTerrain(true, 1);
+  s.altitude = terrainAt(s.terrain, 0).altitude;
+  assert.ok(move(s, 0, 0.02).speed * terrainAt(s.terrain, 0).rise < 0);
   assert.ok(resistance(20, s.specs) > resistance(0, s.specs));
 });

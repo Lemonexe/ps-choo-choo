@@ -1,3 +1,4 @@
+import { testTerrain } from "./browser-terrain.mjs";
 import { testAudio } from "./browser-audio.mjs";
 import { chromium, expect } from "@playwright/test";
 import assert from "node:assert/strict";
@@ -352,6 +353,10 @@ try {
   overfilled.controls.brake = 0;
   const legacy = JSON.parse(JSON.stringify(overfilled));
   delete legacy.controls.blowdown;
+  delete legacy.distance;
+  delete legacy.altitude;
+  delete legacy.terrain;
+  legacy.specs.slope = 0;
   const recovery = await browser.newPage();
   recovery.on("pageerror", (error) => errors.push(error.message));
   await recovery.addInitScript(
@@ -384,7 +389,7 @@ try {
   const recovered = await recovery.evaluate(() =>
     JSON.parse(localStorage.getItem("ps-choo-choo.snapshot")),
   );
-  assert.equal(recovered.version, 2);
+  assert.equal(recovered.version, 3);
   assert.ok(recovered.state.boiler.mass < overfilled.boiler.mass);
   assert.equal(recovered.state.controls.blowdown, false);
   await drain.focus();
@@ -436,6 +441,7 @@ try {
   assert.equal(await recovery.locator("#blowdown").getAttribute("aria-pressed"), "false");
   assert.equal(await recovery.locator("#run").getAttribute("aria-pressed"), "false");
   await recovery.close();
+  await testTerrain(browser, base);
   await testAudio(browser, base);
   assert.deepEqual(errors, []);
   assert.deepEqual(missing, []);
