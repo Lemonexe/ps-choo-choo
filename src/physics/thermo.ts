@@ -221,6 +221,27 @@ export function flash(mass: number, energy: number, volume: number): Water {
     u = finite(energy / mass, "Specific internal energy"),
     rho = 1 / v;
   const low = saturation(MIN_T);
+  // A near-critical *average density* does not imply a near-critical state.
+  // First use the Region 1/2 temperature interval when it contains this
+  // isochore and the requested energy. Finding its remote dome exit first can
+  // force indistinguishable Region 3 saturation endpoints unnecessarily.
+  const ordinaryTop = saturation(623.15);
+  if (rho >= ordinaryTop.vapor.rho && rho <= ordinaryTop.liquid.rho) {
+    const ordinaryMixture = (sat: Saturation): Water =>
+      mixture(sat, (v - sat.liquid.v) / (sat.vapor.v - sat.liquid.v));
+    const bottom = ordinaryMixture(low),
+      top = ordinaryMixture(ordinaryTop);
+    if (u >= bottom.u && u <= top.u) {
+      const T = solveBracket(
+        (t) => ordinaryMixture(saturation(t)).u - u,
+        MIN_T,
+        623.15,
+        2e-7,
+        0.03,
+      );
+      return ordinaryMixture(saturation(T));
+    }
+  }
   let domeEnd: number | null = null;
   if (rho >= low.vapor.rho && rho <= low.liquid.rho) {
     const endpoint = (T: number): number => {

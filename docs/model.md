@@ -327,3 +327,11 @@ The full canvas, labels and rail rotate by the true track angle about wheel/rail
 height. The horizontal rail before transformation spans beyond both canvas edges.
 The HTML slope (degrees), distance (km), and altitude (m) readout remains upright
 at the viewport's bottom left, even when the mobile schematic scrolls.
+
+Ordinary-temperature wet-steam flash first checks an isochoric energy bracket
+between the triple point and 623.15 K when that entire interval lies inside the
+saturation dome. This avoids searching for a remote, numerically degenerate
+near-critical dome exit merely because average density happens to be near
+322 kg/m³. Outside this bracket, the existing general-density/Region 3 path is
+retained. This is a bracketing fix, not a change to IF97 or an approximation of
+critical saturation properties.

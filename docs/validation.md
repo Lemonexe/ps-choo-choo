@@ -6,7 +6,7 @@ are pinned in `package-lock.json`.
 
 ## Automated checks
 
-- **61 passing tests** through `npm test`, including the DOM-free physics build.
+- **63 passing tests** through `npm test`, including the DOM-free physics build.
 - Published IF97 forward cases for Regions 1, 2, 3 and 5; direct saturation cases
   for Region 4. Forward reference comparisons allow 2×10⁻⁷ relative discrepancy
   against rounded published values.
@@ -148,3 +148,21 @@ rejection. The convergence script also crosses a generated-terrain block seam.
 Browser smoke checks cover the paused-only toggle, regeneration at nonzero speed,
 seed/position restore, actual rotation of canvas labels, a full-width rail, and
 an upright HTML readout that stays fixed while the mobile schematic scrolls.
+
+## Critical-density flash regression
+
+The reported snapshot (`tests/fixtures/critical-density-snapshot.json`) is an
+ordinary wet-steam state around 1.829 MPa absolute and 481.07 K, but its average
+boiler density is 322.65 kg/m³, close to the critical density. Previously the flash
+solver eagerly searched for the isochore's remote saturation-dome exit near Tc;
+the dependency could fail to distinguish liquid/vapor endpoints there before
+solving the actual low-temperature state. Flash now uses a verified Region 1/2
+energy bracket first when it contains the equilibrium solution. It retains the
+same IF97 equations and scalar solve tolerances, without pressure clamping or
+substituting approximate critical properties.
+
+Regression tests span bulk densities on both sides of and exactly at 322 kg/m³
+at ordinary temperatures, and advance the supplied state with pump off, throttle/
+gear changes, manual vent, liquid blowdown, and heating until its original relief
+setting opens. A pump-on case also checks actual feedwater inflow. All advance
+with mass and energy transfer residuals below the existing ledger tolerances.
