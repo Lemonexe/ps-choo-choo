@@ -263,10 +263,10 @@ h1 {
 .tabs {
   display: flex;
   align-items: center;
-  gap: 28px;
+  gap: 20px;
   padding-top: 12px;
   border-bottom: 1px solid var(--line);
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 .tabs > button {
   padding: 10px 0 15px;
@@ -291,7 +291,7 @@ h1 {
 .cab-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 270px;
-  gap: 20px;
+  gap: 12px;
 }
 .schematic-card,
 .controls-card,
@@ -493,7 +493,7 @@ input[type="range"]::-moz-range-thumb {
   left: 15px;
 }
 .alerts-card {
-  margin-top: 20px;
+  margin-top: 12px;
 }
 .alerts-card .card-heading {
   padding-bottom: 12px;
@@ -679,7 +679,7 @@ input[type="number"] {
 footer {
   display: flex;
   justify-content: space-between;
-  margin-top: 28px;
+  margin-top: 12px;
   padding: 20px 0 26px;
   border-top: 1px solid var(--line);
   font-size: 8px;

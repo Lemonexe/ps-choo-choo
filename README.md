@@ -39,7 +39,7 @@ and uploads that prebuilt output. Add the three Vercel secrets described in
 
 ## Drive
 
-The first **Getting started** tab contains the introduction. Open **Driving cab**
+The first **Intro** tab contains the introduction. Open **Driving cab**
 for the schematic and controls; train statistics appear directly below the circuit,
 above the steam, coal and feedwater readouts. Opposite-direction running gear is
 silently blocked while moving; neutral remains available.

@@ -82,6 +82,16 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
   const label = (name: string, x: number, y: number): void => text(name, x, y, 11, colors.ink);
   const temp = (T: number): string => `${(T - 273.15).toFixed(0)} °C`;
 
+  const plume = (x: number, y: number): void => {
+    for (let i = 0; i < 3; i++) {
+      c.strokeStyle = "#c7cbbd";
+      c.lineWidth = 1.5;
+      c.beginPath();
+      c.ellipse(x + i * 10, y - i * 15, 8 + i * 4, 4 + i * 3, -0.4, 0, 2 * Math.PI);
+      c.stroke();
+    }
+  };
+
   // Subtle reference grid.
   c.fillStyle = "#dfe5d7";
   for (let x = 25; x < W; x += 25)
@@ -118,6 +128,7 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
   text("P", 239, 356, 12, "#65969b", "center");
   arrow(370, 350, "right", colors.water);
   arrow(430, 327, "up", colors.water);
+  text(`${d.feedRate.toFixed(2)} kg/s`, 170, 380, 11, "#518899");
   line(
     [
       [180, 113],
@@ -132,8 +143,10 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
   // Firebox and boiler body.
   box(245, 230, 125, 155, "#faf2e5", "#c6ab82");
   label("FIREBOX", 259, 251);
-  text(temp(d.fireT), 259, 281, 23, "#a7753d");
-  text(`${s.fire.coal.toFixed(0)} kg coal`, 259, 303, 11);
+  text(temp(d.fireT), 259, 275, 23, "#a7753d");
+  text(`${s.fire.coal.toFixed(0)} kg coal`, 259, 295, 11);
+  text(`${d.burnRate.toFixed(2)} kg/s`, 259, 311, 11);
+  text(`${(d.fireDuty * 1e-6).toFixed(1)} MW duty`, 259, 327, 11);
   const lit = d.burnRate > 0.001 || d.fireT > 650;
   for (let i = 0; i < 5; i++) {
     c.fillStyle = lit ? (i % 2 ? "#d8a05d" : "#e8bf80") : "#c8c5b1";
@@ -193,7 +206,7 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
     "#62858a",
     "right",
   );
-  text(`Metal ${temp(d.metalT)}`, 555, 365, 11, colors.muted, "center");
+  text(`Metal ${temp(d.metalT)}`, 555, 350, 11, colors.muted, "center");
   box(610, 155, 55, 30, "#f3f6ed", "#9fb49d", 8);
   // Relief stem.
   line(
@@ -205,17 +218,7 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
     d.reliefRate > 0 ? "#b67c41" : "#a9b79f",
   );
   text("RELIEF", 634, 107, 9, d.reliefRate > 0 ? "#b67c41" : colors.muted, "center");
-  if (d.reliefRate > 0 || s.controls.vent)
-    for (let i = 0; i < 3; i++)
-      line(
-        [
-          [655 + i * 7, 120],
-          [658 + i * 7, 105],
-        ],
-        "#c2cdbb",
-        true,
-        1,
-      );
+  if (d.reliefRate > 0 || s.controls.vent) plume(659, 115);
 
   // Gas passage to flues and chimney. Dashed amber = heat-bearing flue gas.
   line(
@@ -270,16 +273,10 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
   arrow(947, 221, "up", colors.heat);
   box(930, 113, 35, 89, "#f4f2e6", "#bfb598", 3);
   box(923, 104, 49, 14, "#e7e4d3", "#bfb598", 3);
-  text("CHIMNEY", 947, 60, 10, colors.muted, "center");
-  text(temp(d.chimneyT), 947, 83, 19, "#9a8258", "center");
-  if (d.burnRate > 0.001)
-    for (let i = 0; i < 3; i++) {
-      c.strokeStyle = "#c7cbbd";
-      c.lineWidth = 1.5;
-      c.beginPath();
-      c.ellipse(943 + i * 10, 94 - i * 15, 8 + i * 4, 4 + i * 3, -0.4, 0, 2 * Math.PI);
-      c.stroke();
-    }
+  text("CHIMNEY", 945, 40, 10, colors.muted, "center");
+  text(temp(d.chimneyT), 945, 63, 19, "#9a8258", "center");
+  text(`${d.flueGasRate.toFixed(2)} kg/s`, 945, 83, 13, "#9a8258", "center");
+  if (d.burnRate > 0.001) plume(943, 94);
 
   // Cylinder, exhaust path and optional condenser.
   line(
@@ -292,6 +289,7 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
     3,
   );
   arrow(825, 344, "down", colors.steam);
+  text(`${d.steamRate.toFixed(2)} kg/s steam`, 840, 349, 11, "#5a7e61");
   box(758, 378, 137, 73, "#f2f5ed", "#9caf99", 7);
   label("CYLINDER", 771, 398);
   text(`${(d.power / 1000).toFixed(0)} kW`, 771, 423, 20, colors.ink);
@@ -402,7 +400,7 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
   text(
     d.slipPower > 100
       ? `SLIP LOSS ${(d.slipPower / 1000).toFixed(0)} kW`
-      : "COUPLED DRIVING WHEELS",
+      : "Driving wheels: coupled",
     550,
     535,
     10,

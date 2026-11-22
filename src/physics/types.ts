@@ -74,6 +74,10 @@ export interface Diagnostics {
   metalT: number;
   superheaterT: number;
   chimneyT: number;
+  /** Coal combustion heat input (W), before heat-transfer and exhaust losses. */
+  fireDuty: number;
+  /** Flue-gas mass flow through the chimney (kg/s), excluding engine exhaust. */
+  flueGasRate: number;
   steamT: number;
   power: number;
   tractionPower: number;

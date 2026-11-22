@@ -48,7 +48,7 @@ try {
       .first()
       .textContent()
       .then((text) => text.trim()),
-    "Getting started",
+    "🏠 Intro",
   );
   assert.equal(await page.locator("#panel-start").isVisible(), true);
   assert.equal(await page.locator("#panel-cab").isVisible(), false);
@@ -58,7 +58,7 @@ try {
     "rgba(0, 0, 0, 0)",
   );
   assert.ok((await page.locator(".masthead").boundingBox()).height <= 72);
-  await page.getByRole("tab", { name: "Getting started", exact: true }).focus();
+  await page.getByRole("tab", { name: "🏠 Intro", exact: true }).focus();
   await page.keyboard.press("ArrowRight");
   await page.locator("#phase-label").waitFor();
   assert.equal(await page.locator("#panel-start").isVisible(), false);
@@ -67,31 +67,25 @@ try {
   assert.equal(await page.locator(".train-stats .stat").count(), 4);
   assert.equal(await page.locator(".train-stats #stat-speed").count(), 1);
   const primary = await page.locator(".train-stats").boundingBox();
-  const secondary = await page.locator(".flow-stats:not(.train-stats)").boundingBox();
   const diagram = await page.locator("#schematic").boundingBox();
-  assert.ok(primary.y >= diagram.y + diagram.height && secondary.y >= primary.y + primary.height);
-  assert.ok(
-    await page.evaluate(
-      () =>
-        parseFloat(getComputedStyle(document.getElementById("stat-speed")).fontSize) >
-        parseFloat(getComputedStyle(document.getElementById("flow-steam")).fontSize),
-    ),
-  );
+  assert.ok(primary.y >= diagram.y + diagram.height);
+  assert.equal(await page.locator(".flow-stats:not(.train-stats)").count(), 0);
+  assert.equal(await page.locator("#flow-steam, #flow-coal, #flow-feed, #flow-mass").count(), 0);
   assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "false");
   assert.equal(await page.locator("#clock").textContent(), "🕒 00:00");
   assert.equal(await page.locator("#run").getAttribute("aria-label"), "Resume simulation");
   assert.equal(await page.locator("#run span").textContent(), "▶");
   assert.equal(await page.locator("#run-state").count(), 0);
-  await page.getByRole("tab", { name: "Management", exact: true }).click();
+  await page.getByRole("tab", { name: "📈 Management", exact: true }).click();
   await page.locator("[data-manage=fire]").click();
   await page.locator("[data-manage=boiler]").click();
   assert.match(await page.locator("#management-result").textContent(), /External change/);
-  await page.getByRole("tab", { name: "Specifications", exact: true }).click();
+  await page.getByRole("tab", { name: "📝 Specifications", exact: true }).click();
   await page.locator("#condenser").check();
   await page.locator("#automaticStoker").check();
   await page.locator("#freight").fill("4");
   await page.locator("#freight").dispatchEvent("change");
-  await page.getByRole("tab", { name: "DRIVING CAB", exact: true }).click();
+  await page.getByRole("tab", { name: "🚂 DRIVING CAB", exact: true }).click();
   assert.equal(await page.locator("#automatic-firing").isVisible(), true);
   const slider = async (id, value) =>
     page.locator(`#${id}`).evaluate((el, v) => {
@@ -111,11 +105,11 @@ try {
   assert.equal(await page.locator("#vent").evaluate((el) => el.classList.contains("held")), true);
   await page.mouse.up();
   assert.equal(await page.locator("#vent").evaluate((el) => el.classList.contains("held")), false);
-  await page.getByRole("tab", { name: "Specifications", exact: true }).click();
+  await page.getByRole("tab", { name: "📝 Specifications", exact: true }).click();
   assert.equal(await page.locator("#condenser").isDisabled(), true);
-  await page.getByRole("tab", { name: "Management", exact: true }).click();
+  await page.getByRole("tab", { name: "📈 Management", exact: true }).click();
   assert.equal(await page.locator("[data-manage=fire]").isDisabled(), true);
-  await page.getByRole("tab", { name: "DRIVING CAB", exact: true }).click();
+  await page.getByRole("tab", { name: "🚂 DRIVING CAB", exact: true }).click();
   await page.locator("#run").click();
   assert.equal(
     await page.locator("#run").evaluate((el) => getComputedStyle(el).backgroundColor),
@@ -128,7 +122,9 @@ try {
   assert.equal(saved.state.specs.condenser, true);
   await page.screenshot({ path: "/tmp/ps-choo-choo-desktop.png", fullPage: true });
   await page.reload();
-  await page.getByRole("tab", { name: "DRIVING CAB", exact: true }).click();
+  assert.equal(await page.locator("#panel-cab").isVisible(), true);
+  assert.equal(await page.locator("#panel-start").isVisible(), false);
+  assert.equal(await page.locator("#tab-cab").getAttribute("aria-selected"), "true");
   assert.equal(await page.locator("#run").getAttribute("aria-pressed"), "false");
   assert.equal(await page.locator("#throttle").inputValue(), "25");
   assert.equal(await page.locator("#automatic-firing").isVisible(), true);
@@ -141,7 +137,7 @@ try {
   await page.evaluate(() => {
     delete document.hidden;
   });
-  await page.getByRole("tab", { name: "About 01 118", exact: true }).click();
+  await page.getByRole("tab", { name: "🎓 About DRG Class 01", exact: true }).click();
   assert.match(
     await page.locator('a[href*="commons.wikimedia.org"]').getAttribute("href"),
     /DRG_01_118/,
@@ -150,7 +146,7 @@ try {
     await page.locator('a[href*="en.wikipedia.org"]').getAttribute("href"),
     /DRG_Class_01/,
   );
-  await page.getByRole("tab", { name: "Settings", exact: true }).click();
+  await page.getByRole("tab", { name: "🔧 Settings", exact: true }).click();
   await page.screenshot({ path: "/tmp/ps-choo-choo-settings.png", fullPage: true });
   const downloading = page.waitForEvent("download");
   await page.getByRole("button", { name: "Save snapshot", exact: true }).click();
@@ -180,7 +176,7 @@ try {
   assert.equal(await page.locator('[data-speed][aria-pressed="true"]').count(), 0);
   await page.locator("#reset").click();
   await page.locator("#reset-confirm").click();
-  await page.getByRole("tab", { name: "DRIVING CAB", exact: true }).click();
+  await page.getByRole("tab", { name: "🚂 DRIVING CAB", exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator("#toast").evaluate((el) => {
     el.hidden = true;
@@ -295,7 +291,7 @@ try {
       encode(moving),
     );
     await reverserPage.goto(base);
-    await reverserPage.getByRole("tab", { name: "DRIVING CAB", exact: true }).click();
+    await reverserPage.getByRole("tab", { name: "🚂 DRIVING CAB", exact: true }).click();
     const changeGear = (value) =>
       reverserPage.locator("#reverser").evaluate((input, value) => {
         input.value = String(value);
@@ -340,9 +336,9 @@ try {
     JSON.stringify({ version: 1, state: legacy }),
   );
   await recovery.goto(base);
-  await recovery.getByRole("tab", { name: "DRIVING CAB", exact: true }).click();
+  await recovery.getByRole("tab", { name: "🚂 DRIVING CAB", exact: true }).click();
   assert.equal(await recovery.locator("#error-modal").evaluate((el) => el.open), false);
-  assert.equal(await recovery.locator("#phase-label").textContent(), "Liquid-filled boiler");
+  assert.equal(await recovery.locator("#phase-label").textContent(), "Liquid-filled boiler!");
   await recovery.locator("#run").click();
   await recovery.locator('[data-alert="liquid"]').waitFor();
   const drain = recovery.locator("#blowdown");
@@ -352,7 +348,7 @@ try {
   await recovery.locator('[data-alert="blowdown"]').waitFor();
   await recovery.locator('[data-alert="liquid"]').waitFor({ state: "detached" });
   await recovery.waitForFunction(
-    () => parseFloat(document.getElementById("flow-steam").textContent) > 0,
+    () => parseFloat(document.getElementById("stat-power").textContent) > 0,
   );
   await recovery.mouse.up();
   assert.equal(await drain.getAttribute("aria-pressed"), "false");

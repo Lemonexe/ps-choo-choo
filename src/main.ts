@@ -130,14 +130,14 @@ function render(): void {
     `🕒 ${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`,
   );
   element("stat-speed").innerHTML =
-    `${(Math.abs(state.speed) * 3.6).toFixed(1)} <small>km/h</small>`;
+    `${(Math.abs(state.speed) * 3.6).toFixed(2)} <small>km/h</small>`;
   setText(
     "stat-direction",
     Math.abs(state.speed) < 0.01
       ? "At standstill"
       : state.speed > 0
-        ? "Travelling forward"
-        : "Travelling backward",
+        ? "going forward →"
+        : "← going backward",
   );
   element("stat-power").innerHTML = `${(diagnostics.power / 1000).toFixed(0)} <small>kW</small>`;
   setText("stat-traction", `${(diagnostics.tractionPower / 1000).toFixed(0)} kW at the rail`);
@@ -147,19 +147,15 @@ function render(): void {
       : `${(diagnostics.efficiency * 100).toFixed(1)} <small>%</small>`;
   element("stat-enthalpy").innerHTML =
     `${(diagnostics.enthalpy / 1e9).toFixed(2)} <small>GJ</small>`;
-  setText("flow-steam", `${diagnostics.steamRate.toFixed(2)} kg/s`);
-  setText("flow-coal", `${diagnostics.burnRate.toFixed(2)} kg/s`);
-  setText("flow-feed", `${diagnostics.feedRate.toFixed(2)} kg/s`);
-  setText("flow-mass", `${(diagnostics.trainMass / 1000).toFixed(1)} t`);
   setText(
     "phase-label",
     diagnostics.boiler.phase === "two-phase"
-      ? "Equilibrium water + steam"
+      ? "Water and steam are at equilibrium."
       : diagnostics.boiler.phase === "supercritical"
-        ? "Supercritical fluid · no water level"
+        ? "Supercritical fluid; no water level. Wow, nice!"
         : diagnostics.boiler.phase === "liquid"
-          ? "Liquid-filled boiler"
-          : "Vapor-only boiler",
+          ? "Liquid-filled boiler!"
+          : "Vapor-only boiler!",
   );
   const alertKey = diagnostics.alerts.map((a) => a.id).join(",");
   const alerts = element("alerts");
@@ -440,6 +436,7 @@ try {
   if (raw) {
     state = decode(raw);
     diagnostics = inspect(state);
+    tab(element<HTMLButtonElement>("tab-cab"));
     setText("save-status", "Your data: Restored from saved · paused");
   }
 } catch (error) {
