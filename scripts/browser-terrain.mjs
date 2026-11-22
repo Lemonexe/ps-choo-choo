@@ -36,8 +36,19 @@ export async function testTerrain(browser, base) {
           window.terrainLabelTransform = this.getTransform().toJSON();
         return text.call(this, label, ...args);
       };
+      const clear = CanvasRenderingContext2D.prototype.clearRect;
+      CanvasRenderingContext2D.prototype.clearRect = function (...args) {
+        if (this.canvas.id === "schematic") window.treePositions = [];
+        return clear.apply(this, args);
+      };
       const line = CanvasRenderingContext2D.prototype.moveTo;
       CanvasRenderingContext2D.prototype.moveTo = function (x, y) {
+        if (
+          this.canvas.id === "schematic" &&
+          y === 493 &&
+          ["#dbe2d6", "#cbd6c6"].includes(this.strokeStyle)
+        )
+          window.treePositions.push(x);
         if (this.canvas.id === "schematic" && x === -1100 && y === 493)
           window.terrainRailRendered = true;
         return line.call(this, x, y);
@@ -51,6 +62,10 @@ export async function testTerrain(browser, base) {
     assert.equal(await page.locator("#track-slope").textContent(), "0.0°");
     assert.equal(await page.locator("#slope").count(), 0);
     await page.waitForFunction(() => window.terrainRailRendered);
+    const stationaryTrees = await page.evaluate(() => window.treePositions);
+    assert.ok(stationaryTrees.length > 0);
+    await page.waitForTimeout(75);
+    assert.deepEqual(await page.evaluate(() => window.treePositions), stationaryTrees);
     await page.locator("#tab-specs").click();
     const mode = page.locator("#terrain-mode");
     assert.equal(await page.locator("#panel-specs #terrain-mode").count(), 1);
@@ -103,6 +118,10 @@ export async function testTerrain(browser, base) {
     await page.locator("#run").click();
     const moved = await saved();
     assert.ok(moved.distance > 9000);
+    await page.waitForFunction(
+      (previous) => JSON.stringify(window.treePositions) !== previous,
+      JSON.stringify(stationaryTrees),
+    );
     assert.deepEqual(
       moved.terrain.blocks.map((b) => b.index),
       [0, 1],

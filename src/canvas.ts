@@ -1,4 +1,4 @@
-import type { Diagnostics, State } from "./physics/types.js";
+import { DESIGN, type Diagnostics, type State } from "./physics/types.js";
 import { ATM } from "./physics/thermo.js";
 
 const W = 1100,
@@ -129,6 +129,47 @@ export function draw(canvas: HTMLCanvasElement, s: State, d: Diagnostics): void 
       c.arc(x, y, 0.6, 0, 2 * Math.PI);
       c.fill();
     }
+
+  // Distance-anchored scenery: stable on reload/reversal, with no tree history.
+  // Two quiet layers give parallax while remaining behind the schematic.
+  c.save();
+  const sceneryScale = 2;
+  // A schematic camera 10 m from the rail: the 84 px drivers give its scale.
+  // Tree size stays artistic; passing speed follows distance behind the track.
+  const cameraDistance = 10;
+  const railPixelsPerMetre = 84 / DESIGN.wheelDiameter;
+  for (const [layer, baseSpacing, behindTrack, color] of [
+    [0, 525, 15, "#dbe2d6"],
+    [1, 675, 5, "#cbd6c6"],
+  ] as const) {
+    const spacing = baseSpacing * sceneryScale;
+    const pixelsPerMetre = (railPixelsPerMetre * cameraDistance) / (cameraDistance + behindTrack);
+    const offset = s.distance * pixelsPerMetre;
+    const padding = spacing * 0.2 + 230 * sceneryScale * 0.3;
+    const first = Math.floor((offset - padding) / spacing);
+    const last = Math.ceil((offset + W + padding) / spacing);
+    c.strokeStyle = color;
+    c.lineWidth = layer === 0 ? 1 : 1.4;
+    for (let index = first; index <= last; index++) {
+      const seed = (Math.imul(index ^ ((layer + 1) * 0x5bd1e995), 0x27d4eb2d) >>> 0) / 4294967296;
+      const height = ((layer === 0 ? 110 : 165) + seed * 65) * sceneryScale;
+      const x = index * spacing - offset + (seed - 0.5) * spacing * 0.35;
+      const top = 493 - height;
+      c.beginPath();
+      c.moveTo(x, 493);
+      c.lineTo(x, top);
+      for (let branch = 0; branch < 7; branch++) {
+        const fraction = 0.12 + branch * 0.105;
+        const y = top + height * fraction;
+        const width = height * fraction * 0.28;
+        c.moveTo(x - width, y + height * 0.12);
+        c.lineTo(x, y);
+        c.lineTo(x + width, y + height * 0.12);
+      }
+      c.stroke();
+    }
+  }
+  c.restore();
 
   // Plumes go behind every label and fitting, preserving legibility.
   if (d.burnRate > 0.001) plume(947, 125, 130, false);
