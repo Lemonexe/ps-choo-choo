@@ -229,8 +229,12 @@ function render(): void {
         ? "going forward →"
         : "← going backward",
   );
-  element("stat-power").innerHTML = `${(diagnostics.power / 1000).toFixed(0)} <small>kW</small>`;
-  setText("stat-traction", `${(diagnostics.tractionPower / 1000).toFixed(0)} kW at the rail`);
+  const indicatedKilowatts = (diagnostics.power / 1000).toFixed(0);
+  const railKilowatts = (diagnostics.tractionPower / 1000).toFixed(0);
+  element("stat-power").innerHTML = `${indicatedKilowatts} <small>kW</small>`;
+  element("stat-traction").hidden =
+    diagnostics.slipPower <= 0 || railKilowatts === indicatedKilowatts;
+  setText("stat-traction", `${railKilowatts} kW at the rail`);
   element("stat-efficiency").innerHTML =
     diagnostics.efficiency === null
       ? "—"

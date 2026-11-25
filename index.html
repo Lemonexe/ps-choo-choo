@@ -21,7 +21,7 @@
     <header class="masthead">
       <a class="brand" href="./" aria-label="pS choo choo home">
         <span class="brand-mark">pS</span>
-        <span>choo choo<small>A STEAM LOCOMOTIVE LABORATORY</small> </span>
+        <span>choo choo</span>
       </a>
       <div class="session">
         <span id="clock" role="timer" aria-label="Elapsed simulation time">🕒 00:00</span>
@@ -96,30 +96,67 @@
             <h1>A little coal. A lot of physics.</h1>
             <p class="subtitle">Build pressure, find your cutoff, and put steam to work.</p>
           </div>
-          <div class="reference-tag">
-            <span>DRG Class 01</span>
-            <small>PACIFIC · 2 CYLINDERS · 16 BAR</small>
-          </div>
         </div>
         <div class="section-intro">
           <h2>Your first journey</h2>
           <p>
-            Start in <strong>Management</strong> while paused. Refill water and coal if needed, then
-            preheat the firebox and boiler to light the fire and raise steam.
+            Start in <strong>Management</strong> while paused. Prime the boiler, then Light the fire
+            to preheat the firebox, and Raise Steam twice (to at least 10 bar).
           </p>
           <p>
-            <strong>Driving cab</strong> is the main interface, with the live steam circuit and
-            driving controls. Press play, release the brake, and open the throttle gradually. Keep
-            the fire supplied with coal and use the feedwater pump to maintain the boiler water
-            level.
+            <strong>Driving cab</strong> is the main interface, showing the steam circuit and
+            controls. Press play, gradually open the throttle <strong>and</strong> running gear, and
+            <strong>release brakes</strong> to get it going! Keep the fire supplied with coal and
+            use the feedwater pump to maintain the boiler water level.
           </p>
         </div>
+        <section class="section-intro faq" aria-labelledby="faq-heading">
+          <h2 id="faq-heading">FAQ</h2>
+          <details>
+            <summary>Help, can't get it to run!</summary>
+            <p>
+              See paragraph above. It needs to be emphasized that <strong>both</strong> Throttle and
+              Running gear are necessary to get forward power. Also note that the simulation starts
+              with full brakes applied, so release them first. Except if you are on an uphill
+              incline: then you have to do the same as you would in a car with manual transmission –
+              first apply some forward power, and only <i>then</i> release <s>the kraken</s> the
+              brakes. If wheels are slipping, add sand. If they're still slipping, reduce power.
+              Watch your feedwater pump – never let water level fall below the crown sheet! Also
+              note that feedwater cools down the boiler, so you may lose steam pressure if you use
+              full pump with a rather cold firebox.
+            </p>
+          </details>
+          <details>
+            <summary>How is the efficiency calculated?</summary>
+            <p>
+              The Driving cab shows an estimated <i>thermal</i> efficiency for the main steam cycle,
+              which is essentially an open Rankine cycle. For each kilogram of fresh steam entering
+              the cylinders, the app divides <strong>net work by heat added</strong> and displays
+              the result as a percentage. Net work is indicated cylinder work minus ideal feed-pump
+              work. Heat added is the rise in enthalpy from tender water to steam at the cylinder
+              inlet, minus the energy supplied by the pump.
+            </p>
+            <p>
+              The app estimates ideal pump work by multiplying the tender water’s specific volume by
+              the pressure rise from atmosphere to boiler pressure. The estimate excludes
+              coal-to-steam losses, auxiliary steam use, wheel slip, and train resistance. The
+              display shows — when efficiency cannot be calculated.
+            </p>
+          </details>
+          <details>
+            <summary>Units of measurement</summary>
+            <p>
+              Pressures are shown as gauge, but calculations use absolute pressures. Temperatures
+              are in °C. Energy in J or derivatives, mass in kg or SI tonnes.
+            </p>
+          </details>
+        </section>
       </section>
       <section id="panel-cab" role="tabpanel" aria-labelledby="tab-cab" hidden>
         <div class="cab-grid">
           <div class="schematic-card">
             <div class="card-heading">
-              <h2>The steam circuit</h2>
+              <span class="legend" id="phase-label">Water and steam are at equilibrium.</span>
               <span class="legend">
                 <i class="water-dot"> </i> water <i class="steam-dot"> </i> steam
                 <i class="heat-dot"> </i> heat</span
@@ -145,10 +182,6 @@
                 <span>Altitude <strong id="track-altitude">250 m</strong></span>
               </div>
             </div>
-            <div class="schematic-footer">
-              <span id="phase-label">Equilibrium water + steam</span>
-              <span>Pressures shown as gauge · temperatures in °C</span>
-            </div>
             <div class="flow-stats train-stats" aria-label="Train statistics">
               <div class="stat">
                 <span>SPEED</span>
@@ -158,12 +191,11 @@
               <div class="stat">
                 <span>INDICATED POWER</span>
                 <strong id="stat-power">0 <small>kW</small> </strong>
-                <div id="stat-traction">0 kW at the rail</div>
+                <div id="stat-traction" hidden></div>
               </div>
               <div class="stat">
                 <span>CYCLE THERMAL EFFICIENCY</span>
                 <strong id="stat-efficiency">—</strong>
-                <div>Estimated · feed pump included</div>
               </div>
               <div class="stat">
                 <span>WATER + STEAM ENTHALPY</span>
@@ -386,11 +418,11 @@
               <h2>A Pacific with a long working life.</h2>
               <p>
                 Built in 1934, 01 118 is a preserved example of the DRG Class 01 express passenger
-                locomotive: a two-cylinder, simple-expansion Pacific with 2 metre driving wheels and
-                a 16 bar boiler. Its dimensions set the scale of pS choo choo, from the 600 × 660 mm
-                cylinders to the 34 m³ water tender and 10 tonne coal bunker. This simulator borrows
-                those proportions and uses simplified equilibrium thermodynamics to let you explore
-                how firing, pressure, cutoff, and adhesion work together.
+                locomotive: a two-cylinder, simple-expansion 4-6-2 (Pacific) with 2 metre driving
+                wheels and a 16 bar boiler. The simulation uses its real dimensions, from the 600 ×
+                660 mm cylinders to the 34 m³ water tender and 10 tonne coal bunker. This simulator
+                borrows those proportions and uses simplified equilibrium thermodynamics to let you
+                explore how firing, pressure, cutoff, and adhesion work together.
               </p>
               <div class="about-links">
                 <a
@@ -443,8 +475,7 @@
       </section>
       <section id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" hidden>
         <div class="section-intro sound-settings">
-          <p class="eyebrow">SOUND</p>
-          <h2>Hear the locomotive.</h2>
+          <h2>Sounds</h2>
           <div class="control">
             <label class="switch-line" for="sound-enabled">
               <span>Enable sounds</span>
@@ -461,8 +492,7 @@
           <button id="sound-retry" class="button" hidden>Retry sound</button>
         </div>
         <div class="section-intro">
-          <p class="eyebrow">YOUR SIMULATION</p>
-          <h2>Keep a snapshot.</h2>
+          <h2>Save snapshot file</h2>
           <p>Save your locomotive to a JSON file, or load one.</p>
           <div class="snapshot-actions">
             <button id="save-snapshot" class="button">Save snapshot</button>
@@ -471,8 +501,7 @@
           </div>
         </div>
         <div class="section-intro">
-          <p class="eyebrow">A CLEAN SLATE</p>
-          <h2>Back to the beginning.</h2>
+          <h2>Reset</h2>
           <p>
             Reset all supplies, controls, specifications, and saved state to the warm, paused
             starting condition.
