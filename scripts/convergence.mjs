@@ -1,12 +1,16 @@
+import { readFileSync } from "node:fs";
 import { terrainAt } from "../dist/physics/terrain.js";
 import assert from "node:assert/strict";
 import { initialState, manage, step, inspect, changeTerrain } from "../dist/physics/simulation.js";
 import { thermalEnergy } from "../dist/physics/heat.js";
 import { DESIGN } from "../dist/physics/types.js";
 import { pt } from "../dist/physics/thermo.js";
-import { atPressureVolume } from "../dist/physics/boiler.js";
+import { filledBoiler, atPressureVolume } from "../dist/physics/boiler.js";
 
 const seconds = Number(process.env.CONVERGENCE_SECONDS || 10);
+const starved = JSON.parse(
+  readFileSync(new URL("../tests/fixtures/steam-starvation.json", import.meta.url), "utf8"),
+).cases[1];
 const scenarios = {
   acceleration(s) {
     s.controls = { ...s.controls, throttle: 0.4, brake: 0, sand: true, pump: 0.1, stoker: 0.5 };
@@ -17,6 +21,17 @@ const scenarios = {
     s.specs.condenser = true;
     s.tank.energy *= (s.tank.mass - 1000) / s.tank.mass;
     s.tank.mass -= 1000;
+  },
+  "steam-starved admission"(s) {
+    s.boiler = filledBoiler(starved.boilerPressure, starved.waterLevel);
+    s.superheaterEnergy = thermalEnergy(starved.superheaterTemperature, DESIGN.superheaterCapacity);
+    s.speed = starved.speed;
+    s.controls = {
+      ...s.controls,
+      throttle: starved.throttle,
+      reverser: starved.reverser,
+      brake: 0,
+    };
   },
   "vent + relief"(s) {
     s.controls.vent = true;

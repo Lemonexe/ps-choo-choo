@@ -130,11 +130,29 @@ export function engine(context: EngineContext, wheelSpeed: number): Engine {
     const c = cylinder(source, cutoff);
     return { ...off, force: c.work * cyclesPerMetre, wet: c.wet, admission: c.admission };
   }
-  // At zero pressure difference supply is zero; at atmospheric admission the
-  // downstream cylinder is a steam-consuming zero-work displacement volume.
+  const atmospheric = operatingPoint(context, ATM);
+  const minimumDemand = atmospheric.cycle.freshMass * frequency;
+  // A rolling engine can outrun the available steam even at atmospheric
+  // admission. There is then no root above exhaust pressure. Treat the
+  // underfilled cycle as coasting: pass only the actual regulator flow,
+  // exchange its real superheater heat, and extract no positive work.
+  // Vacuum/backfill and negative pumping torque remain outside this model.
+  if (atmospheric.supply <= minimumDemand) {
+    return {
+      ...off,
+      steam: atmospheric.supply,
+      heat: atmospheric.heat,
+      exhaustH: atmospheric.inlet.h,
+      wet: atmospheric.cycle.wet,
+      inlet: atmospheric.inlet,
+      admission: atmospheric.cycle.admission,
+    };
+  }
+  // Only solve when the atmospheric supply exceeds demand. At zero pressure
+  // difference supply is zero, so the opposite endpoint always has a deficit.
   const p = solveBracket(
     (p) => {
-      const e = operatingPoint(context, p);
+      const e = p === ATM ? atmospheric : operatingPoint(context, p);
       return e.supply - e.cycle.freshMass * frequency;
     },
     ATM,

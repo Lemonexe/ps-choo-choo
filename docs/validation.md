@@ -6,7 +6,7 @@ are pinned in `package-lock.json`.
 
 ## Automated checks
 
-- **63 passing tests** through `npm test`, including the DOM-free physics build.
+- **67 passing tests** through `npm test`, including the DOM-free physics build.
 - Published IF97 forward cases for Regions 1, 2, 3 and 5; direct saturation cases
   for Region 4. Forward reference comparisons allow 2×10⁻⁷ relative discrepancy
   against rounded published values.
@@ -166,3 +166,22 @@ at ordinary temperatures, and advance the supplied state with pump off, throttle
 gear changes, manual vent, liquid blowdown, and heating until its original relief
 setting opens. A pump-on case also checks actual feedwater inflow. All advance
 with mass and energy transfer residuals below the existing ledger tolerances.
+
+## Steam-starved admission regression
+
+`tests/fixtures/steam-starvation.json` contains independent rounded physical
+parameters, not an application snapshot: a 4.3 bar absolute boiler at 15 m/s with
+long cutoff and a 1.2 bar absolute / 40 m/s / 1050 K superheater extreme. Small
+throttle openings leave both endpoints of the atmospheric-to-boiler pressure
+balance in a steam deficit. This previously raised "Root is not bracketed".
+
+Tests establish that the fixture actually has that missing-root condition, then
+verify the starved regime passes only available steam, extracts no positive work,
+accounts superheater heat, and preserves complete-tick mass/energy balances.
+Throttle/cutoff/speed sweeps include rest, neutral and closed throttle, transition
+continuity, restored regulator-flow matching above the transition, repeated input
+orderings, and condenser on/off. The convergence suite includes the extreme case.
+Browser checks engage long cutoff before opening and repeatedly changing throttle,
+verify zero versus positive power across the transition, and reject an error modal
+or an unexpected simulation pause. The reported root-level snapshot is not used
+by these regression tests or the convergence/browser fixtures.

@@ -1,3 +1,5 @@
+import { filledBoiler } from "../dist/physics/boiler.js";
+import { thermalEnergy } from "../dist/physics/heat.js";
 import { testTerrain } from "./browser-terrain.mjs";
 import { testAudio } from "./browser-audio.mjs";
 import { chromium, expect } from "@playwright/test";
@@ -500,6 +502,39 @@ try {
   await sparksPage.locator("#throttle").fill("0");
   await sparksPage.waitForFunction(() => window.renderedSparkWheels?.length === 0);
   await sparksPage.close();
+
+  // A hand-built fixture, not the reported saved state: throttle changes at
+  // long cutoff must cross steam-starved admission without pausing on an error.
+  const starvation = JSON.parse(
+    await readFile(new URL("../tests/fixtures/steam-starvation.json", import.meta.url), "utf8"),
+  ).cases[0];
+  const coasting = initialState();
+  coasting.boiler = filledBoiler(starvation.boilerPressure, starvation.waterLevel);
+  coasting.superheaterEnergy = thermalEnergy(
+    starvation.superheaterTemperature,
+    DESIGN.superheaterCapacity,
+  );
+  coasting.speed = starvation.speed;
+  coasting.controls.brake = 0;
+  coasting.controls.reverser = starvation.reverser;
+  const starvedPage = await browser.newPage();
+  starvedPage.on("pageerror", (error) => errors.push(error.message));
+  await starvedPage.addInitScript(
+    (raw) => localStorage.setItem("ps-choo-choo.snapshot", raw),
+    encode(coasting),
+  );
+  await starvedPage.goto(base);
+  await starvedPage.locator("#run").click();
+  for (const throttle of [1, 20, 100, 0, 5, 100, 0]) {
+    await starvedPage.locator("#throttle").fill(String(throttle));
+    await starvedPage.waitForTimeout(100);
+    assert.equal(await starvedPage.locator("#error-modal").evaluate((el) => el.open), false);
+    assert.equal(await starvedPage.locator("#run").getAttribute("aria-pressed"), "true");
+    const power = parseFloat(await starvedPage.locator("#stat-power").textContent());
+    if (throttle === 100) assert.ok(power > 0);
+    else assert.equal(power, 0);
+  }
+  await starvedPage.close();
 
   await testTerrain(browser, base);
   await testAudio(browser, base);

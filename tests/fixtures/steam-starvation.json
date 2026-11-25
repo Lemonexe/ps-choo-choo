@@ -1,0 +1,23 @@
+{
+  "description": "Hand-built low-pressure, hot-superheater, fast-coasting cases. All quantities are SI; these are parameter fixtures, not saved app snapshots.",
+  "cases": [
+    {
+      "name": "long cutoff at moderate speed with a partly open regulator",
+      "boilerPressure": 430000,
+      "waterLevel": 0.7,
+      "superheaterTemperature": 850,
+      "speed": 15,
+      "throttle": 0.2,
+      "reverser": 1
+    },
+    {
+      "name": "extreme low pressure and almost closed regulator at express speed",
+      "boilerPressure": 120000,
+      "waterLevel": 0.65,
+      "superheaterTemperature": 1050,
+      "speed": 40,
+      "throttle": 0.01,
+      "reverser": 1
+    }
+  ]
+}

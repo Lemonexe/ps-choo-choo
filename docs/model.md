@@ -80,6 +80,22 @@ The regulator is upstream of the superheater. Match its flow to cylinder demand
 by a bracketed admission-pressure solve, including superheater heat at that flow.
 No pipe/chest steam inventory is retained.
 
+A moving engine with small regulator opening, long cutoff, low boiler pressure,
+or hot low-density admission can consume more than the available steam even at
+atmospheric admission. Then `supply(patm) < mfresh(patm)·frequency`, while supply
+is zero at boiler pressure: the positive-pressure balance has **no root**. This
+is a steam-starved regime, not a numerical convergence failure. Check this
+boundary before invoking the pressure solver. In that regime the idealized engine
+coasts with zero positive force/work, admits only the actual regulator mass flow,
+and exhausts it at atmospheric pressure carrying its post-superheater enthalpy.
+Superheater heat is evaluated using that actual flow. Never clamp the pressure
+and then consume the full cylinder-demand flow, which would invent steam.
+
+When supply exceeds atmospheric demand, the existing bracketed solve resumes;
+both sides meet at zero positive gauge work. This retains the existing omission
+of sub-atmospheric cylinder pressure, ambient backfill, and negative pumping
+torque. It is a conservative underfilled-cycle limit, not a detailed vacuum model.
+
 Each representative double-acting cylinder cycle has clearance `Vc`, cutoff
 volume `Va=Vc+cutoff Vs`, and maximum volume `Vb=Vc+Vs`. At periodic operation:
 
@@ -104,7 +120,7 @@ Mechanical friction and wall condensation beyond equilibrium are omitted.
 
 Cutoff is `0.05+0.70|reverser|`, with exact zero as neutral. Four working cycles
 per revolution for two double-acting cylinders. `F=Wcycle·4/(πDwheel)` gives a
-finite mean starting force. `ṁ=mfresh·4|vwheel|/(πDwheel)`; no steam is consumed
+finite mean starting force. For non-starved running, `ṁ=mfresh·4|vwheel|/(πDwheel)`; no steam is consumed
 at exactly stationary, non-slipping quasi-static admission. This omits the brief
 one-time filling of real stationary cylinders.
 
